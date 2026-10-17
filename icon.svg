@@ -1,15 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#357a39"/>
-  <rect x="136" y="0" width="240" height="512" fill="#3b3f46"/>
-  <rect x="120" y="0" width="16" height="512" fill="#e63946"/>
-  <rect x="376" y="0" width="16" height="512" fill="#f1f1f1"/>
-  <g fill="#fff" opacity=".85">
-    <rect x="253" y="30" width="6" height="70"/><rect x="253" y="160" width="6" height="70"/>
-    <rect x="253" y="290" width="6" height="70"/><rect x="253" y="420" width="6" height="70"/>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3d8bff"/><stop offset="1" stop-color="#bfe3ff"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#sky)"/>
+  <path d="M0 330 L140 180 L250 300 L360 160 L512 320 L512 512 L0 512 Z" fill="#5f8f6a"/>
+  <rect y="330" width="512" height="182" fill="#4f9e43"/>
+  <path d="M150 512 L230 330 L282 330 L362 512 Z" fill="#41454e"/>
+  <rect x="96" y="330" width="320" height="22" fill="#fff"/>
+  <g transform="translate(256 405)">
+    <rect x="-118" y="-8" width="236" height="44" rx="14" fill="#23262e"/>
+    <rect x="-130" y="-4" width="46" height="62" rx="12" fill="#141414"/>
+    <rect x="84" y="-4" width="46" height="62" rx="12" fill="#141414"/>
+    <rect x="-84" y="-40" width="168" height="62" rx="18" fill="#e63946"/>
+    <rect x="-110" y="-74" width="220" height="20" rx="8" fill="#e63946"/>
+    <circle cy="-82" r="46" fill="#ffd60a"/>
+    <rect x="-36" y="-92" width="72" height="22" rx="8" fill="#14233a"/>
   </g>
-  <rect x="198" y="170" width="116" height="200" rx="34" fill="#e63946"/>
-  <rect x="248" y="172" width="16" height="196" fill="#fff"/>
-  <rect x="212" y="226" width="88" height="40" rx="12" fill="#1b2838"/>
-  <rect x="216" y="306" width="80" height="26" rx="10" fill="#1b2838"/>
-  <rect x="204" y="352" width="28" height="12" fill="#ff2a2a"/><rect x="280" y="352" width="28" height="12" fill="#ff2a2a"/>
 </svg>

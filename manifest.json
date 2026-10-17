@@ -1,14 +1,13 @@
 {
-  "name": "מירוץ הכביש",
-  "short_name": "מירוץ",
-  "lang": "he",
-  "dir": "rtl",
+  "name": "Kart Rush",
+  "short_name": "Kart Rush",
+  "lang": "en",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",
-  "orientation": "portrait",
-  "background_color": "#0d150d",
-  "theme_color": "#1f3b1f",
+  "orientation": "landscape",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
   "icons": [
     { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ]

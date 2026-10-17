@@ -1,19 +1,20 @@
-# kids-game-1 - Road Race (מירוץ הכביש)
+# kids-game-1
 
-A top-down racing game for the phone. Plain HTML5 canvas, no libraries, no build step.
+Two phone games, plain HTML, no build step.
 
+## Kart Rush (3D) - main page
 Play: https://digimate-rani.github.io/kids-game-1/
 
-## How to play
-- Drag a finger left and right anywhere on the screen to steer.
-- Dodge the traffic. You have 3 hearts.
-- Collect coins and spend them in the garage on new cars.
-- Blue lightning bolt = turbo: faster, and you smash through cars.
-- Staying off the road slows you down.
-- Desktop: arrow keys or A / D.
+- Race 5 computer karts over 3 laps.
+- 3 tracks: Green Valley, Sunset Canyon, Snow Peak.
+- Steering wheel on the left (drag left or right), GAS and BRAKE pedals on the right.
+- Blue arrow pads give a speed boost. Grass slows you down.
+- Desktop: arrow keys or W A S D.
+- Best times and medals are saved on the device.
 
-## Files
-- `index.html` - the whole game
-- `manifest.json`, `icon.svg` - lets the phone add it to the home screen like an app
+Built with Three.js 0.160 loaded from jsDelivr (`index.html`).
 
-Scores, coins and unlocked cars are saved on the device (localStorage).
+## Road Race (2D classic)
+Play: https://digimate-rani.github.io/kids-game-1/classic/
+
+The first version, kept as-is in `classic/` (git tag `v1-road-race`).
