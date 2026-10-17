@@ -70,9 +70,12 @@ One file, three layers:
 | Steering | `drive()` line 877 | `2.15 rad/s`, reduced up to 36% at top speed |
 | Grass slowdown | `drive()` | top speed x 0.52 |
 | Wall bounce | `drive()` | limit `W2 + 3.4` from center, speed x 0.6 |
-| AI skill | `placeGrid()` line 737 | `[0.97, 0.94, 0.91, 0.88, 0.95]` x VMAX |
-| AI corner caution | `aiControl()` line 918 | speed cut up to 45% when curvature > 0.12 |
-| Rubber band | `aiControl()` lines 907-908 | +10% max when the player leads by 60+ m, -12% when the AI leads by 40+ m |
+| AI skill | `placeGrid()` | `[1.0, 0.985, 0.97, 0.955, 0.99]` x `DIFF[save.diff].s` (Easy 0.88 / Normal 0.94 / Hard 1.0) x VMAX |
+| AI corner speed | `aiControl()` | from the steering physics: `0.96 * TURN0 / (curvature + TURN0 * TURNF / 30)`; same formula the player is bound by |
+| AI line / mistakes | `aiControl()` | aims at the inside of the coming corner; lifts the gas for `DIFF.err` seconds every 4-13 s |
+| Rubber band | `aiControl()` | up to `+DIFF.cu` (8 / 12 / 20%) when the player leads by 50+ m, -16% when the AI leads by 30+ m |
+| Tire scrub | `drive()` | `-7 * steer^2` m/s² above 10 m/s, so full lock at speed costs ~15% |
+| Frame cap / quality | `frame()`, `applyQuality()` | 60 fps race, 30 menu, no render when paused or on results; dpr 1.5 (eco 1.0), eco = no shadow map + blob shadows |
 | Laps | `LAPS` | 3 |
 | Track width | `W2` | 14 m |
 
@@ -101,7 +104,10 @@ Canvas 2D, Hebrew RTL text, logical width 360 scaled to the screen.
 
 ---
 
-## 5. Open feedback (Rani, 2026-10-17)
+## 5. Feedback (Rani, 2026-10-17) - RESOLVED in session 2 the same evening
+
+Both items below were fixed (see the tuning table in 2.1 and STATE.md). The analysis is kept as the record of why.
+Still to measure: real-phone fps / heat with and without Battery saver (`?debug` overlay).
 
 Liked: steering wheel and pedals feel good, "really fun".
 
