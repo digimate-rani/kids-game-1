@@ -6,7 +6,7 @@ No build step, no backend, no accounts. Everything a player has lives in their o
 | Game | Path | URL | Size |
 |------|------|-----|------|
 | Kart Rush (3D, English) | `index.html` | https://digimate-rani.github.io/kids-game-1/ | 1142 lines |
-| Road Race (2D, Hebrew, classic) | `classic/index.html` | https://digimate-rani.github.io/kids-game-1/classic/ | 1289 lines |
+| Road Race v2 (2D, Hebrew) | `classic/index.html` | https://digimate-rani.github.io/kids-game-1/classic/ | 3482 lines |
 
 Git: `main` deploys straight to Pages (Settings -> Pages -> main / root). Tag `v1-road-race` = the 2D game before the move to `classic/`.
 
@@ -91,8 +91,14 @@ Canvas 2D, Hebrew RTL text, logical width 360 scaled to the screen.
 - Sprites (cars, trees, coins) are painted once at high resolution and reused.
 - Endless road: curve function `curve(d)`, traffic in rows that always leave a free lane, coins, turbo bolt.
 - 4 worlds every 600 m: meadow, desert, snow, night (night uses a half-resolution light mask for headlights and street lamps).
-- Garage with 6 cars bought with coins. Save key `kids-game-1.v1`.
-- Test hook `window.__g` (`set(screen)`, `warp(meters)`).
+- v2 (2026-11-14): `TUNE` (all gameplay numbers) and `STAGES` (20 rows: world, type, length, speed, traffic, mech,
+  rivalFactor, goals, starCoins) near the top. `updatePlay` is split into `updateHazards`, `spawnStageEntities`,
+  `updateTraffic`, `updateCoins`, `updatePickups`, `emitDriveEffects`; rival in `initRival` / `updateRival` /
+  `chooseLookaheadLane` (shared with the sim bot). Screens: menu, map, stageCard, play, paused, stageOver, carReward,
+  garage (cars / upgrades tabs), over (Free ride).
+- Garage: 13 cars (`CARS`), upgrades (`UPGRADES`, `save.up`). Save key `kids-game-1.v1` (old saves load).
+- Test hook `window.__g`: set, warp, stage, finish, unlockAll, save, stages, speedKmh, mech, spawn, goals, rival,
+  simRace(sec), addCoinsRun, beatBoss, pause, coins, buy, upgrades.
 
 ---
 

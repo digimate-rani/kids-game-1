@@ -17,7 +17,17 @@ Play: https://digimate-rani.github.io/kids-game-1/
 
 Built with Three.js 0.160 loaded from jsDelivr (`index.html`).
 
-## Road Race (2D classic)
+## Road Race (2D, Hebrew) - v2
 Play: https://digimate-rani.github.io/kids-game-1/classic/
 
-The first version, kept as-is in `classic/` (git tag `v1-road-race`).
+- Journey: 4 worlds (meadow, desert, snow, night) x 5 stages, 3 goals = 3 stars per stage, boss needs 8 of 12 stars.
+- Stage types: finish run, race against a computer rival, coin duel, boss race. Each world has its rival
+  (בני הבזק, סופה, קרחון, צל) and its own road hazards (lane-changing cars, sand, narrow road, cones, ice, sharp
+  curves, oncoming lane, potholes).
+- Live goal tracker and "יעד הושלם!" notice, speedometer, pause button.
+- Garage: 13 cars (6 to buy, 4 boss gifts, 3 premium with abilities) and upgrades (extra hearts, long turbo, magnet,
+  shield). Free ride = the original endless mode, now with the hazards.
+- Steering: drag with a finger, or arrow keys. Save on the device (`kids-game-1.v1`, old saves load).
+- Test hooks: `window.__g` (stage, finish, simRace, spawn, pause, buy, ...). Tuning numbers: `TUNE` and `STAGES`.
+- Spec and roadmap: `.digido/ROAD-RACE-V2-DESIGN.md`, `.digido/ROAD-RACE-V2-ROADMAP.md`.
+- Before v2: git tag `v1-road-race`.

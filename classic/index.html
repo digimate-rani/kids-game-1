@@ -58,6 +58,35 @@ const UPGRADES = [
 ];
 const TURBO_DURS = [3.2, 4.0, 4.8, 5.6];
 const MAGNET_DURS = [0, 5, 7, 9];
+const TUNE = {
+  baseSpeed: 320,
+  freeSpeedCap: 280, freeSpeedDiv: 90,
+  stageSpeedBonus: 60, stageSpeedDiv: 400,
+  turboMul: 1.5, offroadMul: 0.55, sandMul: 0.58,
+  trafficSpeedRatio: 0.42, oncomingSpeedRatio: 0.85,
+  invulnHit: 1.7, invulnShield: 1.25,
+  rowGapMin: 270, rowGapNum: 425, rowGapDistDiv: 900,
+  freeGapMin: 230, freeGapBase: 360, freeGapDistDiv: 120,
+  hazardMin: 480, hazardBase: 840, hazardRand: 520,
+  oncomingMin: 980, oncomingBase: 1450, oncomingRand: 720,
+  narrowBase: 3200, narrowRand: 1400,
+  coinBase: 420, coinRand: 500, duelCoinBase: 320, duelCoinRand: 280,
+  boltBase: 2100, boltRand: 1200, freeBoltBase: 2600, freeBoltRand: 1800,
+  magnetBase: 1750, magnetRand: 850, freeMagnetBase: 2500, freeMagnetRand: 1400,
+  shieldLv1Base: 3200, shieldLv1Rand: 1600, shieldLv2Base: 2100, shieldLv2Rand: 1100,
+  magnetRange: 320, magnetRate: 11, carMagnetRange: 150, carMagnetRate: 6.2,
+  rival: {
+    reactByW: [0.34, 0.28, 0.24, 0.21],
+    errByW: [0.14, 0.10, 0.08, 0.06],
+    bossReactMul: 0.72, bossErrMul: 0.55,
+    duel: [
+      { startD: -60, duelPace: 0.965, coinW: 160, coinRange: 270, reactMul: 0.90, errMul: 0.95, laneRate: 6.5 },
+      { startD: 10,  duelPace: 0.985, coinW: 260, coinRange: 340, reactMul: 0.78, errMul: 0.72, laneRate: 7.5 },
+      { startD: 20,  duelPace: 0.978, coinW: 300, coinRange: 360, reactMul: 0.74, errMul: 0.65, laneRate: 7.8 },
+      { startD: 50,  duelPace: 0.972, coinW: 410, coinRange: 430, reactMul: 0.60, errMul: 0.50, laneRate: 8.4 },
+    ],
+  },
+};
 const TRAFFIC_COLORS = ['#4f5d75', '#c8cdd2', '#ef8354', '#4cc9f0', '#90be6d', '#f9844a', '#9d8189', '#577590', '#f28482'];
 const BIG = { truck: [30, 80], bus: [30, 84], van: [28, 52] };
 
@@ -92,7 +121,7 @@ const STAGES = [
     goals: [{ kind: 'finish', n: 1, label: 'נצח בדו-קרב מטבעות' }, { kind: 'coins', n: 12, label: 'אסוף 12 מטבעות' }, { kind: 'smash', n: 1, label: 'מעך רכב בטורבו' }] },
   { id: 3,  world: 0, s: 3, name: 'שדרת העצים',    type: 'race',   length: 320, speedFactor: 1.06, traffic: 0.96, mech: ['laneChange'], rivalFactor: 0.99, starCoins: [25, 40, 55],
     goals: [{ kind: 'finish', n: 1, label: 'נצח במירוץ' }, { kind: 'nocrash', n: 0, label: 'סיים בלי התנגשות' }, { kind: 'lead', n: 15, label: 'הקדם ב-15 מ׳' }] },
-  { id: 4,  world: 0, s: 4, name: 'בוס האחו',      type: 'boss',   length: 380, speedFactor: 1.12, traffic: 1.00, mech: ['laneChange'], rivalFactor: 1.02, starCoins: [40, 60, 90],
+  { id: 4,  world: 0, s: 4, name: 'בוס האחו',      type: 'boss',   length: 380, speedFactor: 1.12, traffic: 1.00, mech: ['laneChange'], rivalFactor: 0.99, starCoins: [40, 60, 90],
     goals: [{ kind: 'finish', n: 1, label: 'נצח את הבוס' }, { kind: 'coins', n: 14, label: 'אסוף 14 מטבעות' }, { kind: 'nocrash', n: 0, label: 'סיים בלי התנגשות' }] },
   // World 1 - Desert
   { id: 5,  world: 1, s: 0, name: 'כביש החולות',   type: 'finish', length: 300, speedFactor: 1.08, traffic: 0.92, mech: ['sand'], rivalFactor: 0.96, starCoins: [25, 40, 60],
@@ -974,18 +1003,12 @@ function usableLanesAt(D, pad) {
   return [0, 1, 2, 3].filter(l => l !== closed && !(inc && l === 0));
 }
 
-const DUEL_CFG = [
-  { startD: -60, duelPace: 0.965, coinW: 160, coinRange: 270, reactMul: 0.90, errMul: 0.95, laneRate: 6.5 },
-  { startD: 10,  duelPace: 0.985, coinW: 260, coinRange: 340, reactMul: 0.78, errMul: 0.72, laneRate: 7.5 },
-  { startD: 40,  duelPace: 0.995, coinW: 330, coinRange: 380, reactMul: 0.70, errMul: 0.60, laneRate: 8.0 },
-  { startD: 85,  duelPace: 1.015, coinW: 460, coinRange: 460, reactMul: 0.55, errMul: 0.45, laneRate: 8.8 },
-];
 function initRival() {
   if (!activeStage || activeStage.type === 'finish') { rival = null; return; }
   const w = activeStage.world, rd = RIVAL_DATA[w] || RIVAL_DATA[0], isBoss = activeStage.s === 4;
-  const isDuel = activeStage.type === 'duel', dc = DUEL_CFG[w] || DUEL_CFG[0];
-  const reactByW = [0.34, 0.28, 0.24, 0.21][w] * (isBoss ? 0.72 : (isDuel ? dc.reactMul : 1));
-  const errByW = [0.14, 0.10, 0.08, 0.06][w] * (isBoss ? 0.55 : (isDuel ? dc.errMul : 1));
+  const isDuel = activeStage.type === 'duel', dc = TUNE.rival.duel[w] || TUNE.rival.duel[0];
+  const reactByW = TUNE.rival.reactByW[w] * (isBoss ? TUNE.rival.bossReactMul : (isDuel ? dc.reactMul : 1));
+  const errByW = TUNE.rival.errByW[w] * (isBoss ? TUNE.rival.bossErrMul : (isDuel ? dc.errMul : 1));
   rival = {
     active: true, world: w, name: rd.name, style: isBoss ? 'f1' : rd.style,
     body: rd.body, stripe: rd.stripe, accent: rd.accent,
@@ -1009,7 +1032,7 @@ function resetRunVars() {
   iceT = 0; vxIce = 0; onSand = false; forcedMechs = []; forcedSharpD = null;
   traffic = []; coins = []; bolts = []; magnets = []; shields = []; parts = []; confetti = []; hazards = []; narrows = []; popup = null;
   nextRow = 650; nextCoin = 900; nextBolt = activeStage ? 1700 : 2600;
-  nextMagnet = 1400; nextShield = 1800;
+  nextMagnet = 800; nextShield = 1800;
   nextHazard = 850; nextNarrow = 1600; nextOncoming = 1100;
   prevFree = null; nextMilestone = 250; lastBiome = activeStage ? activeStage.world : 0;
   countdown = 3; goFlash = 0; lastTick = 4;
@@ -1054,8 +1077,8 @@ function chooseLookaheadLane(D, curLane, nitroOn, coinW, boltW, errProb, coinRan
     for (const c of coins) if (c.lane === l && c.D >= D + 10 && c.D <= cMaxD) sc += coinW;
     for (const b of bolts) if (b.lane === l && b.D >= D + 15 && b.D <= D + 380) sc += boltW;
     if (pickupW) {
-      for (const m of magnets) if (m.lane === l && m.D >= D + 15 && m.D <= D + 380) sc += pickupW;
-      for (const s of shields) if (s.lane === l && s.D >= D + 15 && s.D <= D + 380) sc += pickupW;
+      for (const m of magnets) if (m.lane === l && m.D >= D + 15 && m.D <= D + 440) sc += pickupW;
+      for (const s of shields) if (s.lane === l && s.D >= D + 15 && s.D <= D + 400) sc += Math.round(pickupW * 0.45);
     }
     return { l, sc };
   });
@@ -1071,7 +1094,7 @@ function updateRival(dt, base, finishD) {
   if (!r || !r.active) return;
   const st = activeStage;
   const isDuel = st && st.type === 'duel';
-  const dc = isDuel ? (DUEL_CFG[r.world] || DUEL_CFG[0]) : null;
+  const dc = isDuel ? (TUNE.rival.duel[r.world] || TUNE.rival.duel[0]) : null;
   const rf = st ? st.rivalFactor : 1;
   const rb = isDuel
     ? clamp(1 + clamp((dist - r.D) / 900, -0.45, 1) * 0.08, 0.964, 1.08)
@@ -1503,7 +1526,7 @@ function damagePlayer(x, y, cause) {
     const fromTank = !shieldOn && tankArmor;
     if (shieldOn) shieldOn = false;
     else tankArmor = false;
-    invuln = 1.25; shake = 0.25;
+    invuln = TUNE.invulnShield; shake = 0.25;
     burst(x, y, fromTank ? '#ffd60a' : '#4cc9f0', 18, 160, 'star');
     blip(420, 220, 0.16, 'triangle', 0.08);
     showPopup(fromTank ? 'שריון הטנק!' : 'המגן הציל!');
@@ -1512,7 +1535,7 @@ function damagePlayer(x, y, cause) {
   const k = (cause === 'traffic' || cause === 'oncoming' || cause === 'cones') ? cause : 'other';
   runHits[k]++;
   lives--; crashes++;
-  invuln = 1.7; shake = 0.4; flash = 0.25;
+  invuln = TUNE.invulnHit; shake = 0.4; flash = 0.25;
   speed *= 0.45;
   burst(x, y, '#ffb703', 14, 140);
   for (let i = 0; i < 5; i++) parts.push({ x, y, vx: (Math.random() - 0.5) * 60, vy: speed * 0.3 + Math.random() * 40, life: 0.9, max: 0.9, color: '#6b7078', size: 9, kind: 'puff' });
@@ -1535,26 +1558,7 @@ function hit(car) {
   damagePlayer(x, y, car.oncoming ? 'oncoming' : 'traffic');
 }
 
-function updatePlay(dt) {
-  steer(dt);
-  if (countdown > 0) {
-    countdown -= dt;
-    const c = Math.ceil(countdown);
-    if (c !== lastTick && c > 0) { lastTick = c; blip(520, 520, 0.12, 'square', 0.05); }
-    if (countdown <= 0) { goFlash = 0.8; blip(780, 1040, 0.25, 'square', 0.07); }
-    return;
-  }
-  goFlash = Math.max(0, goFlash - dt);
-  if (activeStage) stageTime += dt;
-  const sf = activeStage ? activeStage.speedFactor : 1;
-  const td = activeStage ? activeStage.traffic : 1;
-  const finishD = activeStage ? activeStage.length * 50 : Infinity;
-  const base = activeStage ? (320 * sf + Math.min(60, dist / 400)) : (320 + Math.min(280, dist / 90));
-
-  const nNow = narrowAt(dist, 0);
-  const closedOff = nNow ? (nNow.side < 0 ? px < W / 2 - HALF + LANE - 2 : px > W / 2 + HALF - LANE + 2) : false;
-  offroad = Math.abs(px - W / 2) > HALF + 6 || closedOff;
-
+function updateHazards() {
   onSand = false;
   for (const h of hazards) {
     const x = carX(h.lane, h.D, dist), y = screenY(h.D, dist);
@@ -1581,68 +1585,54 @@ function updatePlay(dt) {
             blip(280, 90, 0.15, 'sawtooth', 0.07);
           } else {
             damagePlayer(cx, cy, 'cones');
-            if (state !== 'play') return;
+            if (state !== 'play') return false;
           }
         }
       }
     }
   }
+  return true;
+}
 
-  const topMul = curCar().ability === 'speed' ? 1.10 : 1;
-  const slowMul = (offroad && nitro <= 0) ? 0.55 : (onSand && nitro <= 0 ? 0.58 : 1);
-  const target = base * topMul * (nitro > 0 ? 1.5 : 1) * slowMul;
-  speed += (target - speed) * Math.min(1, dt * (target < speed ? 3 : 1.4));
-  dist += speed * dt;
-  invuln = Math.max(0, invuln - dt);
-  nitro = Math.max(0, nitro - dt);
-  magnetT = Math.max(0, magnetT - dt);
-  iceT = Math.max(0, iceT - dt);
-  shake = Math.max(0, shake - dt);
-  flash = Math.max(0, flash - dt);
-  if (popup && (popup.life -= dt) <= 0) popup = null;
-
-  if (activeStage && dist >= finishD) { finishStage(); return; }
-
-  const horizon = Math.min(dist + PLAYER_Y + 160, finishD - 140);
+function spawnStageEntities(horizon, td) {
   while (nextRow < horizon) {
     spawnRow(nextRow);
-    const gap = activeStage ? Math.max(270, (425 / td) - dist / 900) : Math.max(230, 360 - dist / 120);
+    const gap = activeStage ? Math.max(TUNE.rowGapMin, (TUNE.rowGapNum / td) - dist / TUNE.rowGapDistDiv) : Math.max(TUNE.freeGapMin, TUNE.freeGapBase - dist / TUNE.freeGapDistDiv);
     nextRow += gap * (0.9 + Math.random() * 0.35);
   }
   while (nextCoin < horizon) {
     spawnCoins(nextCoin);
-    nextCoin += (activeStage && activeStage.type === 'duel') ? (320 + Math.random() * 280) : (420 + Math.random() * 500);
+    nextCoin += (activeStage && activeStage.type === 'duel') ? (TUNE.duelCoinBase + Math.random() * TUNE.duelCoinRand) : (TUNE.coinBase + Math.random() * TUNE.coinRand);
   }
   while (nextBolt < horizon - 120) {
     spawnPickup(bolts, nextBolt);
-    nextBolt += activeStage ? (2100 + Math.random() * 1200) : (2600 + Math.random() * 1800);
+    nextBolt += activeStage ? (TUNE.boltBase + Math.random() * TUNE.boltRand) : (TUNE.freeBoltBase + Math.random() * TUNE.freeBoltRand);
   }
-  const magLvl = upLvl('magnet');
-  if (magLvl > 0) {
+  if (upLvl('magnet') > 0) {
     while (nextMagnet < horizon - 120) {
       spawnPickup(magnets, nextMagnet);
-      nextMagnet += activeStage ? (2400 + Math.random() * 1300) : (2800 + Math.random() * 1700);
+      nextMagnet += activeStage ? (TUNE.magnetBase + Math.random() * TUNE.magnetRand) : (TUNE.freeMagnetBase + Math.random() * TUNE.freeMagnetRand);
     }
   } else nextMagnet = Math.max(nextMagnet, dist + 900);
   const shLvl = upLvl('shield');
   if (shLvl > 0) {
     while (nextShield < horizon - 120) {
       spawnPickup(shields, nextShield);
-      nextShield += shLvl >= 2 ? (2100 + Math.random() * 1100) : (3200 + Math.random() * 1600);
+      nextShield += shLvl >= 2 ? (TUNE.shieldLv2Base + Math.random() * TUNE.shieldLv2Rand) : (TUNE.shieldLv1Base + Math.random() * TUNE.shieldLv1Rand);
     }
   } else nextShield = Math.max(nextShield, dist + 1100);
 
   if (hasMech('narrow')) {
     while (nextNarrow < horizon - 500) {
       spawnNarrow(nextNarrow + 260);
-      nextNarrow += (3200 / Math.max(0.85, td)) + Math.random() * 1400;
+      nextNarrow += (TUNE.narrowBase / Math.max(0.85, td)) + Math.random() * TUNE.narrowRand;
     }
   } else nextNarrow = Math.max(nextNarrow, dist + 1400);
 
   if (hasMech('oncoming')) {
     while (nextOncoming < horizon + 120) {
       spawnOncoming(nextOncoming);
-      nextOncoming += Math.max(980, 1450 / td) + Math.random() * 720;
+      nextOncoming += Math.max(TUNE.oncomingMin, TUNE.oncomingBase / td) + Math.random() * TUNE.oncomingRand;
     }
   } else nextOncoming = Math.max(nextOncoming, dist + 900);
 
@@ -1651,13 +1641,15 @@ function updatePlay(dt) {
     while (nextHazard < horizon - 120) {
       const k = hazKinds[(Math.random() * hazKinds.length) | 0];
       spawnHazard(k === 'potholes' ? 'pothole' : k, nextHazard);
-      nextHazard += Math.max(480, 840 / Math.max(0.85, td)) + Math.random() * 520;
+      nextHazard += Math.max(TUNE.hazardMin, TUNE.hazardBase / Math.max(0.85, td)) + Math.random() * TUNE.hazardRand;
     }
   } else nextHazard = Math.max(nextHazard, dist + 700);
+}
 
-  const ts = base * 0.42;
+function updateTraffic(dt, base) {
+  const ts = base * TUNE.trafficSpeedRatio;
   for (const c of traffic) {
-    if (c.oncoming) { c.D -= ts * 0.85 * dt; continue; }
+    if (c.oncoming) { c.D -= ts * TUNE.oncomingSpeedRatio * dt; continue; }
     c.D += ts * dt;
     if (c.shiftDir) {
       if (!c.triggered && c.D - dist <= 480 && c.D - dist > 100) c.triggered = true;
@@ -1680,13 +1672,20 @@ function updatePlay(dt) {
   shields = shields.filter(c => screenY(c.D, dist) < H + 40);
   hazards = hazards.filter(h => screenY(h.D1 || h.D, dist) < H + 180);
   narrows = narrows.filter(n => screenY(n.D1, dist) < H + 260);
-
   for (const c of traffic.slice()) {
     const x = carX(c.lane, c.D, dist), y = screenY(c.D, dist);
-    if (Math.abs(x - px) < (c.w + PW) / 2 * 0.78 && Math.abs(y - PLAYER_Y) < (c.h + PH) / 2 * 0.85) { hit(c); if (state !== 'play') return; }
+    if (Math.abs(x - px) < (c.w + PW) / 2 * 0.78 && Math.abs(y - PLAYER_Y) < (c.h + PH) / 2 * 0.85) {
+      hit(c);
+      if (state !== 'play') return false;
+    }
   }
+  return true;
+}
+
+function updateCoins(dt) {
   const magActive = magnetT > 0 || curCar().ability === 'magnet';
-  const magR = magnetT > 0 ? 235 : 120, magRate = magnetT > 0 ? 8.5 : 4.6;
+  const magR = magnetT > 0 ? TUNE.magnetRange : TUNE.carMagnetRange;
+  const magRate = magnetT > 0 ? TUNE.magnetRate : TUNE.carMagnetRate;
   const pLane = (px - (W / 2 - HALF)) / LANE - 0.5;
   for (let i = coins.length - 1; i >= 0; i--) {
     const c = coins[i];
@@ -1701,42 +1700,36 @@ function updatePlay(dt) {
       burst(x, y, '#ffe066', 6, 90, 'star');
     }
   }
-  for (let i = bolts.length - 1; i >= 0; i--) {
-    const c = bolts[i], x = carX(c.lane, c.D, dist), y = screenY(c.D, dist);
-    if (Math.abs(x - px) < 24 && Math.abs(y - PLAYER_Y) < 34) {
-      bolts.splice(i, 1); nitro = turboDur(); showPopup('טורבו!');
-      burst(x, y, '#4cc9f0', 14, 140, 'star');
-      blip(300, 1200, 0.4, 'sawtooth', 0.08); buzz(60);
-    }
-  }
-  for (let i = magnets.length - 1; i >= 0; i--) {
-    const c = magnets[i], x = carX(c.lane, c.D, dist), y = screenY(c.D, dist);
-    if (Math.abs(x - px) < 24 && Math.abs(y - PLAYER_Y) < 34) {
-      magnets.splice(i, 1); magnetT = MAGNET_DURS[clamp(upLvl('magnet'), 1, 3)];
-      showPopup('מגנט!');
-      burst(x, y, '#ff4d8d', 14, 140, 'star');
-      blip(440, 880, 0.25, 'triangle', 0.08); buzz(50);
-    }
-  }
-  for (let i = shields.length - 1; i >= 0; i--) {
-    const c = shields[i], x = carX(c.lane, c.D, dist), y = screenY(c.D, dist);
-    if (Math.abs(x - px) < 24 && Math.abs(y - PLAYER_Y) < 34) {
-      shields.splice(i, 1); shieldOn = true;
-      showPopup('מגן!');
-      burst(x, y, '#00f5d4', 14, 140, 'star');
-      blip(380, 740, 0.22, 'sine', 0.09); buzz(50);
-    }
-  }
-  stealPopCool = Math.max(0, stealPopCool - dt);
-  if (rival && rival.active) updateRival(dt, base, finishD);
-  if (activeStage) updateGoals(dt, false);
-  if (!activeStage) {
-    const b = biomeAt(dist);
-    if (b !== lastBiome) { lastBiome = b; showPopup(BIOME_NAMES[b], 'עולם חדש'); }
-    const m = Math.floor(dist / 50);
-    if (m >= nextMilestone) { if (!popup) showPopup(String(m), 'מטר'); nextMilestone += 250; }
-  }
+}
 
+function collectPickup(arr, fn) {
+  for (let i = arr.length - 1; i >= 0; i--) {
+    const c = arr[i], x = carX(c.lane, c.D, dist), y = screenY(c.D, dist);
+    if (Math.abs(x - px) < 24 && Math.abs(y - PLAYER_Y) < 34) { arr.splice(i, 1); fn(x, y); }
+  }
+}
+
+function updatePickups() {
+  collectPickup(bolts, (x, y) => {
+    nitro = turboDur(); showPopup('טורבו!');
+    burst(x, y, '#4cc9f0', 14, 140, 'star');
+    blip(300, 1200, 0.4, 'sawtooth', 0.08); buzz(60);
+  });
+  collectPickup(magnets, (x, y) => {
+    magnetT = MAGNET_DURS[clamp(upLvl('magnet'), 1, 3)];
+    showPopup('מגנט!');
+    burst(x, y, '#ff4d8d', 14, 140, 'star');
+    blip(440, 880, 0.25, 'triangle', 0.08); buzz(50);
+  });
+  collectPickup(shields, (x, y) => {
+    shieldOn = true;
+    showPopup('מגן!');
+    burst(x, y, '#00f5d4', 14, 140, 'star');
+    blip(380, 740, 0.22, 'sine', 0.09); buzz(50);
+  });
+}
+
+function emitDriveEffects(dt) {
   if ((offroad || onSand) && nitro <= 0 && Math.random() < dt * 30) {
     const dc = onSand ? '#e2bd73' : ['#8a6a3a', '#d9b56e', '#ffffff', '#5a4a30'][biomeAt(dist)];
     parts.push({ x: px + (Math.random() - 0.5) * 20, y: PLAYER_Y + 20, vx: (Math.random() - 0.5) * 50, vy: speed * 0.35, life: 0.6, max: 0.6, color: dc, size: 7, kind: 'puff' });
@@ -1744,9 +1737,65 @@ function updatePlay(dt) {
   if (iceT > 0 && Math.random() < dt * 24) {
     parts.push({ x: px + (Math.random() - 0.5) * 18, y: PLAYER_Y + 20, vx: (Math.random() - 0.5) * 35, vy: speed * 0.3, life: 0.4, max: 0.4, color: '#b8f2ff', size: 3.5, kind: 'sq' });
   }
+  if (magnetT > 0 && Math.random() < dt * 16) {
+    const a = Math.random() * Math.PI * 2;
+    parts.push({ x: px + Math.cos(a) * 26, y: PLAYER_Y + Math.sin(a) * 26, vx: -Math.cos(a) * 42, vy: -Math.sin(a) * 42, life: 0.32, max: 0.32, color: '#ff4d8d', size: 3.5, kind: 'star' });
+  }
   if (nitro > 0) {
     parts.push({ x: px + (Math.random() - 0.5) * 10, y: PLAYER_Y + 24, vx: (Math.random() - 0.5) * 30, vy: 260 + Math.random() * 120, life: 0.3, max: 0.3, color: Math.random() < 0.5 ? '#ffb703' : '#ff6b35', size: 3 + Math.random() * 3, kind: 'sq' });
   }
+}
+
+function updatePlay(dt) {
+  steer(dt);
+  if (countdown > 0) {
+    countdown -= dt;
+    const c = Math.ceil(countdown);
+    if (c !== lastTick && c > 0) { lastTick = c; blip(520, 520, 0.12, 'square', 0.05); }
+    if (countdown <= 0) { goFlash = 0.8; blip(780, 1040, 0.25, 'square', 0.07); }
+    return;
+  }
+  goFlash = Math.max(0, goFlash - dt);
+  if (activeStage) stageTime += dt;
+  const sf = activeStage ? activeStage.speedFactor : 1;
+  const td = activeStage ? activeStage.traffic : 1;
+  const finishD = activeStage ? activeStage.length * 50 : Infinity;
+  const base = activeStage ? (TUNE.baseSpeed * sf + Math.min(TUNE.stageSpeedBonus, dist / TUNE.stageSpeedDiv)) : (TUNE.baseSpeed + Math.min(TUNE.freeSpeedCap, dist / TUNE.freeSpeedDiv));
+
+  const nNow = narrowAt(dist, 0);
+  const closedOff = nNow ? (nNow.side < 0 ? px < W / 2 - HALF + LANE - 2 : px > W / 2 + HALF - LANE + 2) : false;
+  offroad = Math.abs(px - W / 2) > HALF + 6 || closedOff;
+  if (!updateHazards()) return;
+
+  const topMul = curCar().ability === 'speed' ? 1.10 : 1;
+  const slowMul = (offroad && nitro <= 0) ? TUNE.offroadMul : (onSand && nitro <= 0 ? TUNE.sandMul : 1);
+  const target = base * topMul * (nitro > 0 ? TUNE.turboMul : 1) * slowMul;
+  speed += (target - speed) * Math.min(1, dt * (target < speed ? 3 : 1.4));
+  dist += speed * dt;
+  invuln = Math.max(0, invuln - dt);
+  nitro = Math.max(0, nitro - dt);
+  magnetT = Math.max(0, magnetT - dt);
+  iceT = Math.max(0, iceT - dt);
+  shake = Math.max(0, shake - dt);
+  flash = Math.max(0, flash - dt);
+  if (popup && (popup.life -= dt) <= 0) popup = null;
+  if (activeStage && dist >= finishD) { finishStage(); return; }
+
+  spawnStageEntities(Math.min(dist + PLAYER_Y + 160, finishD - 140), td);
+  if (!updateTraffic(dt, base)) return;
+  updateCoins(dt);
+  updatePickups();
+
+  stealPopCool = Math.max(0, stealPopCool - dt);
+  if (rival && rival.active) updateRival(dt, base, finishD);
+  if (activeStage) updateGoals(dt, false);
+  else {
+    const b = biomeAt(dist);
+    if (b !== lastBiome) { lastBiome = b; showPopup(BIOME_NAMES[b], 'עולם חדש'); }
+    const m = Math.floor(dist / 50);
+    if (m >= nextMilestone) { if (!popup) showPopup(String(m), 'מטר'); nextMilestone += 250; }
+  }
+  emitDriveEffects(dt);
   engineSet(true, speed);
 }
 
@@ -2531,12 +2580,22 @@ function drawHud() {
     const g = ctx.createLinearGradient(W / 2 - 70, 0, W / 2 + 70, 0);
     g.addColorStop(0, '#4cc9f0'); g.addColorStop(1, '#ffd60a');
     ctx.fillStyle = g; rr(W / 2 - 70, H - 36, 140 * clamp(nitro / turboDur(), 0, 1), 14, 7); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.22)'; ctx.lineWidth = 1; rr(W / 2 - 70, H - 36, 140, 14, 7); ctx.stroke();
+    text('⚡', W / 2 - 81, H - 29, 13, '#ffd60a', OUT);
   }
   if (magnetT > 0) {
     const my = nitro > 0 ? H - 56 : H - 36;
     const mMax = MAGNET_DURS[clamp(upLvl('magnet'), 1, 3)] || 5;
     ctx.fillStyle = 'rgba(0,0,0,.45)'; rr(W / 2 - 55, my, 110, 12, 6); ctx.fill();
     ctx.fillStyle = '#ff4d8d'; rr(W / 2 - 55, my, 110 * clamp(magnetT / mMax, 0, 1), 12, 6); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.22)'; ctx.lineWidth = 1; rr(W / 2 - 55, my, 110, 12, 6); ctx.stroke();
+    text('🧲', W / 2 - 67, my + 6, 12, '#ff9ec4', OUT);
+  }
+  if (shieldOn || tankArmor) {
+    const sy = H - 102;
+    ctx.fillStyle = 'rgba(10,16,30,.72)'; rr(12, sy, 74, 24, 12); ctx.fill();
+    ctx.strokeStyle = shieldOn ? '#00f5d4' : '#ffd60a'; ctx.lineWidth = 1.5; ctx.stroke();
+    text(shieldOn ? '🛡 מגן' : '🛡 שריון', 49, sy + 12.5, 11, shieldOn ? '#9cfdf0' : '#fff3a0');
   }
   drawSpeedometer();
   drawPauseButton();
@@ -2606,6 +2665,12 @@ function drawMenu() {
   blit(vehicleSprite(car.style, car.body, car.stripe), W / 2, cy + Math.sin(t * 2) * 4, Math.sin(t * 1.3) * 0.06, compact ? 1.85 : 2.15);
 
   const b1y = compact ? H * 0.49 : H * 0.51;
+  if (car.abilityText) {
+    const byBadge = (cy + b1y) / 2 + (compact ? 6 : 8);
+    ctx.fillStyle = 'rgba(10,16,30,.72)'; rr(W / 2 - 96, byBadge - 11, 192, 22, 11); ctx.fill();
+    ctx.strokeStyle = '#ffd60a'; ctx.lineWidth = 1.4; ctx.stroke();
+    text(car.badge + ' ' + car.name + ': ' + car.abilityText, W / 2, byBadge + 0.5, 11, '#fff3a0');
+  }
   const b2y = b1y + (compact ? 62 : 70);
   const b3y = b2y + (compact ? 54 : 60);
   button(W / 2, b1y, 244, compact ? 58 : 64, 'מסע', '#2dbd5a', '#17803a', () => { state = 'map'; }, 32);
@@ -3064,10 +3129,16 @@ function drawGarageUpgrades(top, bottom) {
       text('מקסימום!', bx + bw / 2, by + bh / 2 + 1, 13, '#7CFC00', OUT);
     } else {
       const can = save.coins >= price;
-      ctx.fillStyle = can ? '#2dbd5a' : 'rgba(60,72,96,.85)'; rr(bx, by, bw, bh, 14); ctx.fill();
-      ctx.strokeStyle = can ? '#7CFC00' : 'rgba(255,255,255,.22)'; ctx.lineWidth = 1.5; ctx.stroke();
-      blit(coinSprite(), bx + bw - 18, by + bh / 2, 0, 0.72);
-      text(String(price), bx + bw - 30, by + bh / 2 + 1, 15, can ? '#fff' : '#ff8fa3', OUT, 'right');
+      const pressed = pressedAt && pressedAt.x >= bx && pressedAt.x <= bx + bw && pressedAt.y >= by && pressedAt.y <= by + bh;
+      const dy = pressed ? 3 : 0;
+      ctx.fillStyle = can ? '#1b7a38' : '#242c3d'; rr(bx, by + 4, bw, bh, 14); ctx.fill();
+      ctx.fillStyle = can ? '#2dbd5a' : 'rgba(60,72,96,.92)'; rr(bx, by + dy, bw, bh, 14); ctx.fill();
+      if (can) {
+        ctx.fillStyle = 'rgba(255,255,255,.20)'; rr(bx + 4, by + 3 + dy, bw - 8, bh * 0.36, 10); ctx.fill();
+      }
+      ctx.strokeStyle = can ? '#7CFC00' : 'rgba(255,255,255,.22)'; ctx.lineWidth = 1.5; rr(bx, by + dy, bw, bh, 14); ctx.stroke();
+      blit(coinSprite(), bx + bw - 18, by + bh / 2 + dy, 0, 0.72);
+      text(String(price), bx + bw - 30, by + bh / 2 + 1 + dy, 15, can ? '#fff' : '#ff8fa3', OUT, 'right');
       const buyFn = () => {
         audioInit();
         const res = buyItem(u.id);
@@ -3079,7 +3150,7 @@ function drawGarageUpgrades(top, bottom) {
           blip(160, 110, 0.2, 'square', 0.06); buzz(60);
         }
       };
-      ui.push({ x: x0, y: y0, w: cw, h: ch, fn: buyFn });
+      ui.push({ x: bx, y: by, w: bw, h: bh, fn: buyFn });
     }
   });
   if (garageMsg > 0) text(garageMsgText, W / 2, bottom - 15, 13, '#ff8fa3', OUT);
@@ -3368,7 +3439,7 @@ window.__g = {
     const isDuel = activeStage && activeStage.type === 'duel';
     for (let i = 0; i < steps && state === 'play'; i++) {
       const physLane = clamp((px - (W / 2 - HALF)) / LANE - 0.5, 0, 3);
-      botLane = chooseLookaheadLane(dist, botLane, nitro > 0, isDuel ? 420 : 140, 420, 0, isDuel ? 420 : 320, physLane, 360);
+      botLane = chooseLookaheadLane(dist, botLane, nitro > 0, isDuel ? 420 : 140, 420, 0, isDuel ? 420 : 320, physLane, isDuel ? 2400 : 1000);
       tx = clamp(carX(botLane, dist, dist), 24, W - 24);
       keys.left = false; keys.right = false;
       updatePlay(dt);
