@@ -192,6 +192,7 @@ function crashSound() {
 }
 const coinSound = () => { blip(880, 1320, 0.09, 'square', 0.05); setTimeout(() => blip(1320, 1760, 0.12, 'square', 0.05), 70); };
 const winSound = () => { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => blip(f, f * 1.02, 0.16, 'triangle', 0.07), i * 95)); };
+const goalSound = () => { [659, 880, 1175].forEach((f, i) => setTimeout(() => blip(f, f * 1.03, 0.14, 'triangle', 0.075), i * 65)); };
 const buzz = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} };
 
 // ---------- helpers ----------
@@ -776,6 +777,7 @@ let prevFree = null, nextMilestone = 250, lastBiome = 0;
 let score = 0, newBest = false, popup = null, garageMsg = 0, lastTick = 0;
 let activeStage = null, selectedStage = 0, unlockedAll = false;
 let stageTime = 0, crashes = 0, stageFailed = false, earnedStars = 0, starBonus = 0, goalResults = [];
+let goalStates = [], goalNotice = null, goalQueue = [], flyStars = [];
 let iceT = 0, vxIce = 0, onSand = false, forcedMechs = [], forcedSharpD = null;
 let mapMsg = 0, mapMsgText = '';
 let ui = [];
@@ -877,6 +879,87 @@ function resetRunVars() {
   prevFree = null; nextMilestone = 250; lastBiome = activeStage ? activeStage.world : 0;
   countdown = 3; goFlash = 0; lastTick = 4;
   stageFailed = false; earnedStars = 0; starBonus = 0; goalResults = [];
+  initGoalTracker();
+}
+function goalChipRect(idx) {
+  const cw = 111, ch = 24, gap = 5, x0 = 8 + (2 - idx) * (cw + gap), y0 = 52;
+  return { x: x0, y: y0, w: cw, h: ch, starX: x0 + cw - 12, starY: y0 + ch / 2 };
+}
+function evalGoalLive(g, finished) {
+  const finishD = activeStage ? activeStage.length * 50 : 1;
+  if (g.kind === 'coins') {
+    const status = coinsRun >= g.n ? 'done' : ((finished || stageFailed) ? 'lost' : 'active');
+    return { status, current: coinsRun, progress: clamp(coinsRun / Math.max(1, g.n), 0, 1), text: 'מטבעות ' + Math.min(coinsRun, g.n) + '/' + g.n };
+  }
+  if (g.kind === 'smash') {
+    const status = smashes >= g.n ? 'done' : ((finished || stageFailed) ? 'lost' : 'active');
+    return { status, current: smashes, progress: clamp(smashes / Math.max(1, g.n), 0, 1), text: 'מעיכות ' + Math.min(smashes, g.n) + '/' + g.n };
+  }
+  if (g.kind === 'nocrash') {
+    const status = (crashes > 0 || stageFailed) ? 'lost' : (finished ? 'done' : 'active');
+    return { status, current: crashes === 0 ? 1 : 0, progress: crashes === 0 ? clamp(dist / Math.max(1, finishD), 0, 1) : 0, text: 'בלי התנגשות' };
+  }
+  if (g.kind === 'time') {
+    const status = (stageTime > g.n || stageFailed) ? 'lost' : (finished ? 'done' : 'active');
+    const sec = Math.floor(stageTime);
+    return { status, current: sec, progress: stageTime <= g.n ? clamp(stageTime / Math.max(1, g.n), 0, 1) : 1, text: Math.min(sec, g.n) + '/' + g.n + ' שנ׳' };
+  }
+  if (g.kind === 'lead') {
+    // Phase C rival hooks here
+    const status = stageFailed ? 'lost' : (finished ? 'done' : 'active');
+    return { status, current: 0, progress: clamp(dist / Math.max(1, finishD), 0, 1), text: 'הובלה' };
+  }
+  const status = stageFailed ? 'lost' : (finished ? 'done' : 'active');
+  return { status, current: activeStage ? Math.min(activeStage.length, Math.floor(dist / 50)) : 0, progress: clamp(dist / Math.max(1, finishD), 0, 1), text: 'קו סיום' };
+}
+function initGoalTracker() {
+  goalNotice = null; goalQueue = []; flyStars = [];
+  if (!activeStage) { goalStates = []; return; }
+  goalStates = activeStage.goals.map((g, i) => {
+    const snap = evalGoalLive(g, false);
+    return { idx: i, kind: g.kind, label: g.label, target: g.n, status: snap.status, current: snap.current, progress: snap.progress, text: snap.text, flashT: 0 };
+  });
+}
+function triggerGoalComplete(gs) {
+  gs.flashT = 1.0;
+  goalQueue.push({ label: gs.label, idx: gs.idx });
+  if (!goalNotice) {
+    const next = goalQueue.shift();
+    goalNotice = { label: next.label, idx: next.idx, life: 1.4, max: 1.4 };
+  }
+  const cr = goalChipRect(gs.idx);
+  flyStars.push({ x0: W / 2 + 86, y0: 103, x1: cr.starX, y1: cr.starY, t: 0, dur: 0.52, idx: gs.idx });
+  goalSound();
+}
+function updateGoals(dt, finished) {
+  if (!activeStage) return;
+  if (!goalStates.length) initGoalTracker();
+  for (let i = 0; i < goalStates.length; i++) {
+    const gs = goalStates[i];
+    gs.flashT = Math.max(0, gs.flashT - dt);
+    const prev = gs.status;
+    const snap = evalGoalLive(activeStage.goals[i], !!finished);
+    gs.status = snap.status; gs.current = snap.current; gs.progress = snap.progress; gs.text = snap.text;
+    if (!finished && prev === 'active' && snap.status === 'done') triggerGoalComplete(gs);
+    else if (!finished && prev === 'active' && snap.status === 'lost') gs.flashT = 0.75;
+  }
+  if (goalNotice) {
+    goalNotice.life -= dt;
+    if (goalNotice.life <= 0) {
+      if (goalQueue.length) {
+        const next = goalQueue.shift();
+        goalNotice = { label: next.label, idx: next.idx, life: 1.15, max: 1.15 };
+      } else goalNotice = null;
+    }
+  }
+  for (let i = flyStars.length - 1; i >= 0; i--) {
+    const fs = flyStars[i];
+    fs.t += dt;
+    if (fs.t >= fs.dur) {
+      burst(fs.x1, fs.y1, '#ffd60a', 7, 70, 'star');
+      flyStars.splice(i, 1);
+    }
+  }
 }
 function startFreeRun() { activeStage = null; resetRunVars(); }
 function startRun() { startFreeRun(); }
@@ -891,17 +974,12 @@ function startStage(idx) {
   resetRunVars();
 }
 function evalGoal(g) {
-  if (g.kind === 'finish') return !stageFailed;
-  if (g.kind === 'coins') return coinsRun >= g.n;
-  if (g.kind === 'nocrash') return crashes === 0;
-  if (g.kind === 'smash') return smashes >= g.n;
-  if (g.kind === 'time') return stageTime <= g.n;
-  if (g.kind === 'lead') return true; // Phase C will compare player and rival distance
-  return false;
+  return evalGoalLive(g, true).status === 'done';
 }
 function finishStage() {
   if (!activeStage) return;
   state = 'stageOver'; overT = 0; stageFailed = false;
+  updateGoals(0, true);
   goalResults = activeStage.goals.map(evalGoal);
   earnedStars = goalResults.filter(Boolean).length;
   const oldStars = save.stars[activeStage.id] || 0;
@@ -917,6 +995,7 @@ function finishStage() {
 function failStage() {
   if (!activeStage) return;
   state = 'stageOver'; overT = 0; stageFailed = true;
+  updateGoals(0, true);
   goalResults = activeStage.goals.map(() => false);
   earnedStars = 0; starBonus = 0;
   persist();
@@ -1247,6 +1326,7 @@ function updatePlay(dt) {
       blip(300, 1200, 0.4, 'sawtooth', 0.08); buzz(60);
     }
   }
+  if (activeStage) updateGoals(dt, false);
   if (!activeStage) {
     const b = biomeAt(dist);
     if (b !== lastBiome) { lastBiome = b; showPopup(BIOME_NAMES[b], 'עולם חדש'); }
@@ -1580,9 +1660,9 @@ function drawObjects() {
       const pulse = 0.65 + Math.sin(t * 14) * 0.35;
       ctx.save(); ctx.globalAlpha = pulse;
       ctx.fillStyle = 'rgba(255, 59, 48, .88)';
-      rr(ax - 20, 52, 40, 22, 11); ctx.fill();
+      rr(ax - 20, 80, 40, 22, 11); ctx.fill();
       ctx.strokeStyle = '#ffd60a'; ctx.lineWidth = 1.6; ctx.stroke();
-      text('⚠ ↓', ax, 63, 12, '#ffffff');
+      text('⚠ ↓', ax, 91, 12, '#ffffff');
       ctx.restore();
     }
   }
@@ -1810,6 +1890,83 @@ function drawJourneyProgress() {
   text(curM + ' / ' + activeStage.length + ' מ׳', 185, 36, 12, '#d7e5f5');
 }
 
+function drawGoalTracker() {
+  if (!activeStage || !goalStates.length) return;
+  for (let i = 0; i < goalStates.length; i++) {
+    const gs = goalStates[i], r = goalChipRect(i);
+    ctx.save();
+    ctx.fillStyle = gs.status === 'done' ? 'rgba(20, 62, 34, 0.86)' : (gs.status === 'lost' ? 'rgba(30, 34, 42, 0.72)' : 'rgba(10, 16, 30, 0.62)');
+    rr(r.x, r.y, r.w, r.h, 12); ctx.fill();
+    if (gs.status === 'active' && gs.progress > 0.02) {
+      ctx.save();
+      rr(r.x, r.y, r.w, r.h, 12); ctx.clip();
+      ctx.fillStyle = gs.kind === 'nocrash' ? 'rgba(124, 252, 0, 0.25)' : alpha(WORLDS[activeStage.world].accent, 0.32);
+      ctx.fillRect(r.x, r.y + r.h - 3, r.w * gs.progress, 3);
+      ctx.restore();
+    }
+    rr(r.x, r.y, r.w, r.h, 12);
+    ctx.lineWidth = gs.status === 'done' ? 1.6 : 1.1;
+    ctx.strokeStyle = gs.status === 'done' ? '#ffd60a' : (gs.status === 'lost' ? 'rgba(255,255,255,.16)' : 'rgba(255,255,255,.24)');
+    ctx.stroke();
+    if (gs.flashT > 0) {
+      const f = clamp(gs.flashT, 0, 1);
+      ctx.globalAlpha = f * 0.7;
+      ctx.strokeStyle = gs.status === 'lost' ? '#ff6b6b' : '#ffd60a';
+      ctx.lineWidth = 2.5;
+      rr(r.x - (1 - f) * 3, r.y - (1 - f) * 3, r.w + (1 - f) * 6, r.h + (1 - f) * 6, 13);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+    if (gs.status === 'done') {
+      drawStar(r.starX, r.starY, 6.2, '#ffd60a', '#7a4500', 1.2);
+    } else if (gs.status === 'lost') {
+      text('✗', r.starX, r.starY + 0.5, 12, '#9aa5b4');
+    } else {
+      drawStar(r.starX, r.starY, 5.4, 'rgba(255,255,255,.14)', 'rgba(255,255,255,.45)', 1);
+    }
+    const txCol = gs.status === 'done' ? '#fff3a0' : (gs.status === 'lost' ? '#8b95a5' : '#eef4fc');
+    text(gs.text, r.x + (r.w - 18) / 2, r.y + r.h / 2 + 0.5, 11, txCol);
+    ctx.restore();
+  }
+}
+
+function drawGoalNotice() {
+  if (!goalNotice) return;
+  const pIn = clamp((goalNotice.max - goalNotice.life) / 0.16, 0, 1);
+  const pOut = clamp(goalNotice.life / 0.26, 0, 1);
+  const a = Math.min(pIn, pOut);
+  const sc = 0.88 + 0.12 * pIn;
+  ctx.save();
+  ctx.globalAlpha = a * 0.94;
+  ctx.translate(W / 2, 104);
+  ctx.scale(sc, sc);
+  const bw = 228, bh = 44;
+  const g = ctx.createLinearGradient(0, -bh / 2, 0, bh / 2);
+  g.addColorStop(0, '#20375c'); g.addColorStop(1, '#111d36');
+  ctx.fillStyle = g; rr(-bw / 2, -bh / 2, bw, bh, 22); ctx.fill();
+  ctx.lineWidth = 2.2; ctx.strokeStyle = '#ffd60a'; ctx.stroke();
+  drawStar(86, 0, 11.5, '#ffd60a', '#7a4500', 1.8);
+  text('יעד הושלם!', -8, -8, 14, '#ffd60a', OUT);
+  text(goalNotice.label, -8, 10, 12, '#ffffff');
+  ctx.restore();
+}
+
+function drawFlyStars() {
+  for (const fs of flyStars) {
+    const k = clamp(fs.t / fs.dur, 0, 1);
+    const e = k * k * (3 - 2 * k);
+    const x = fs.x0 + (fs.x1 - fs.x0) * e;
+    const y = fs.y0 + (fs.y1 - fs.y0) * e - Math.sin(k * Math.PI) * 18;
+    const sc = 1.25 - 0.55 * e;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(k * 5.2);
+    ctx.scale(sc, sc);
+    drawStar(0, 0, 10, '#ffd60a', '#7a4500', 1.6);
+    ctx.restore();
+  }
+}
+
 function drawHud() {
   pill(8, 10, 92, 34);
   for (let i = 0; i < maxLives; i++) {
@@ -1826,6 +1983,11 @@ function drawHud() {
   pill(W - 92, 10, 84, 34);
   blit(coinSprite(), W - 72, 27, 0, 0.85);
   text(String(coinsRun), W - 56, 28, 22, '#ffe066', null, 'left');
+  if (activeStage) {
+    drawGoalTracker();
+    drawGoalNotice();
+    drawFlyStars();
+  }
   if (nitro > 0) {
     ctx.fillStyle = 'rgba(0,0,0,.45)'; rr(W / 2 - 70, H - 36, 140, 14, 7); ctx.fill();
     const g = ctx.createLinearGradient(W / 2 - 70, 0, W / 2 + 70, 0);
@@ -1835,12 +1997,13 @@ function drawHud() {
   drawSpeedometer();
   if (popup) {
     const k = 1.8 - popup.life;
+    const pyOff = goalNotice ? 50 : 0;
     ctx.globalAlpha = clamp(popup.life * 2, 0, 1);
     const sc2 = 1 + Math.max(0, 0.25 - k) * 2;
-    ctx.save(); ctx.translate(W / 2, 96 - k * 8); ctx.scale(sc2, sc2);
-    text(popup.s, 0, 0, 34, '#ffd60a', { w: 7, c: 'rgba(0,0,0,.55)' });
+    ctx.save(); ctx.translate(W / 2, 106 + pyOff - k * 8); ctx.scale(sc2, sc2);
+    text(popup.s, 0, 0, 32, '#ffd60a', { w: 7, c: 'rgba(0,0,0,.55)' });
     ctx.restore();
-    if (popup.sub) text(popup.sub, W / 2, 130 - k * 8, 18, '#ffffff', OUT);
+    if (popup.sub) text(popup.sub, W / 2, 138 + pyOff - k * 8, 17, '#ffffff', OUT);
     ctx.globalAlpha = 1;
   }
   if (flash > 0) { ctx.fillStyle = 'rgba(255,40,60,' + (flash * 1.4) + ')'; ctx.fillRect(0, 0, W, H); }
@@ -2361,6 +2524,11 @@ window.__g = {
     return true;
   },
   mech() { return activeMechs(); },
+  goals() {
+    if (!activeStage) return [];
+    if (!goalStates.length) initGoalTracker();
+    return goalStates.map(g => ({ kind: g.kind, label: g.label, target: g.target, current: g.current, status: g.status, text: g.text }));
+  },
   spawn(kind) {
     const norm = kind === 'pothole' ? 'potholes'
       : kind === 'cone' ? 'cones'
