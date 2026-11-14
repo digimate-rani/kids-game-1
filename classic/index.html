@@ -45,7 +45,19 @@ const CARS = [
   { name: 'סופת אש',  style: 'sport', body: '#ff7b00', stripe: '#fff3a0', price: 0, bossWorld: 1 },
   { name: 'חץ הקרח',  style: 'coupe', body: '#00b4d8', stripe: '#e0fbff', price: 0, bossWorld: 2 },
   { name: 'רכב הצל',  style: 'gold',  body: '#5a189a', stripe: '#00f5d4', price: 0, bossWorld: 3 },
+  // Premium ability cars (indices 10-12 / cars 11-13)
+  { name: 'ברק',      style: 'f1',    body: '#00d2ff', stripe: '#ffd60a', price: 600,  ability: 'speed',  badge: '⚡', abilityText: '+10% מהירות שיא' },
+  { name: 'מגנטית',   style: 'sport', body: '#ff2d75', stripe: '#00f5d4', price: 900,  ability: 'magnet', badge: '🧲', abilityText: 'מגנט מובנה תמידי' },
+  { name: 'טנק',      style: 'tank',  body: '#4a7c3a', stripe: '#ffd60a', price: 1200, ability: 'armor',  badge: '🛡', abilityText: 'פגיעה ראשונה חינם' },
 ];
+const UPGRADES = [
+  { id: 'heart',  name: 'לב נוסף',     prices: [300, 800],      color: '#ff4d6d', desc: l => l < 2 ? (3 + l) + ' לבבות, הבא: ' + (4 + l) : '5 לבבות - מקסימום' },
+  { id: 'turbo',  name: 'טורבו ארוך',  prices: [100, 200, 400], color: '#ffd60a', desc: l => { const d = [3.2, 4.0, 4.8, 5.6]; return l < 3 ? d[l] + ' ש׳, הבא: ' + d[l + 1] + ' ש׳' : '5.6 שניות - מקסימום'; } },
+  { id: 'magnet', name: 'מגנט מטבעות', prices: [150, 150, 300], color: '#ff4d8d', desc: l => { const d = [0, 5, 7, 9]; return l === 0 ? 'מושך מטבעות (5 ש׳)' : (l < 3 ? d[l] + ' ש׳, הבא: ' + d[l + 1] + ' ש׳' : '9 שניות - מקסימום'); } },
+  { id: 'shield', name: 'מגן התנגשות', prices: [250, 400],      color: '#4cc9f0', desc: l => l === 0 ? 'סופג התנגשות אחת' : (l === 1 ? 'פעיל, הבא: מופיע יותר' : 'שכיחות גבוהה - מקסימום') },
+];
+const TURBO_DURS = [3.2, 4.0, 4.8, 5.6];
+const MAGNET_DURS = [0, 5, 7, 9];
 const TRAFFIC_COLORS = ['#4f5d75', '#c8cdd2', '#ef8354', '#4cc9f0', '#90be6d', '#f9844a', '#9d8189', '#577590', '#f28482'];
 const BIG = { truck: [30, 80], bus: [30, 84], van: [28, 52] };
 
@@ -151,13 +163,19 @@ window.addEventListener('orientationchange', () => setTimeout(resize, 150));
 resize();
 
 // ---------- save ----------
-const save = { best: 0, coins: 0, owned: [0], car: 0, mute: false, stars: Array(20).fill(0) };
+const DEF_UP = { heart: 0, turbo: 0, magnet: 0, shield: 0 };
+const save = { best: 0, coins: 0, owned: [0], car: 0, mute: false, stars: Array(20).fill(0), up: { ...DEF_UP } };
 try { Object.assign(save, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
 if (!Array.isArray(save.owned)) save.owned = [0];
 if (!Array.isArray(save.stars) || save.stars.length < STAGES.length) {
   const prev = Array.isArray(save.stars) ? save.stars : [];
   save.stars = Array.from({ length: STAGES.length }, (_, i) => Math.max(0, Math.min(3, prev[i] | 0)));
 }
+if (!save.up || typeof save.up !== 'object') save.up = { ...DEF_UP };
+for (const u of UPGRADES) save.up[u.id] = clamp(save.up[u.id] | 0, 0, u.prices.length);
+const upLvl = id => (save.up && save.up[id]) | 0;
+const curCar = () => CARS[save.car] || CARS[0];
+const turboDur = () => TURBO_DURS[clamp(upLvl('turbo'), 0, 3)];
 function persist() { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} }
 
 // ---------- sound ----------
@@ -207,7 +225,7 @@ const goalSound = () => { [659, 880, 1175].forEach((f, i) => setTimeout(() => bl
 const buzz = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} };
 
 // ---------- helpers ----------
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 const mod = (a, n) => ((a % n) + n) % n;
 const hash = n => { n = (n * 374761393 + 668265263) | 0; n = (n ^ (n >>> 13)) * 1274126177 | 0; return (n ^ (n >>> 16)) >>> 0; };
 const stageBiomeLock = () => activeStage && (state === 'play' || state === 'paused' || state === 'stageCard' || state === 'stageOver');
@@ -413,6 +431,7 @@ function lights(g, w, h) {
 
 function paintVehicle(g, style, body, stripe, w, h) {
   if (style === 'f1') return paintF1(g, body, stripe, w, h);
+  if (style === 'tank') return paintTank(g, body, stripe, w, h);
   if (style === 'truck' || style === 'bus') return paintBig(g, style, body, w, h);
   const boxy = style === 'jeep' || style === 'van';
   withShadow(g, 5, 2, 5, 0.45, () => { g.fillStyle = '#000'; rr(-w / 2, -h / 2, w, h, boxy ? 5 : 8, g); g.fill(); });
@@ -493,6 +512,24 @@ function paintF1(g, body, stripe, w, h) {
   g.fillStyle = hg; circle(g, 0, -h * 0.03, 3.8); g.fill();
   g.fillStyle = shade(body, -0.5); rr(-w / 2 + 1, h / 2 - 6, w - 2, 5, 2, g); g.fill();
   g.fillStyle = stripe; g.fillRect(-w / 2 + 2, h / 2 - 4.5, w - 4, 1.5);
+}
+function paintTank(g, body, stripe, w, h) {
+  withShadow(g, 5, 2, 5, 0.45, () => { g.fillStyle = '#000'; rr(-w / 2, -h / 2 + 2, w, h - 4, 4, g); g.fill(); });
+  for (const sx of [-1, 1]) {
+    const tx = sx < 0 ? -w / 2 - 1 : w / 2 - 4;
+    g.fillStyle = '#1e221e'; rr(tx, -h / 2 + 3, 5, h - 6, 2, g); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.16)';
+    for (let y = -h / 2 + 6; y < h / 2 - 5; y += 5) g.fillRect(tx + 0.8, y, 3.4, 2);
+  }
+  g.fillStyle = bodyFill(g, body, w - 6); rr(-w / 2 + 3, -h / 2 + 5, w - 6, h - 10, 4, g); g.fill();
+  g.strokeStyle = stripe; g.lineWidth = 1.6;
+  g.beginPath(); g.moveTo(-w / 2 + 5, h * 0.25); g.lineTo(w / 2 - 5, h * 0.25); g.stroke();
+  // cannon barrel + armored turret
+  g.fillStyle = shade(body, -0.4); rr(-2.2, -h / 2 - 2, 4.4, h * 0.45, 1.5, g); g.fill();
+  g.fillStyle = stripe; g.fillRect(-2.6, -h / 2 - 1, 5.2, 3);
+  g.fillStyle = shade(body, -0.2); circle(g, 0, 2, 8.2); g.fill();
+  g.strokeStyle = stripe; g.lineWidth = 1.4; circle(g, 0, 2, 8.2); g.stroke();
+  g.fillStyle = shade(body, 0.25); circle(g, 0, 2, 4); g.fill();
 }
 function paintBig(g, style, body, w, h) {
   withShadow(g, 6, 2, 6, 0.45, () => { g.fillStyle = '#000'; rr(-w / 2, -h / 2, w, h, 4, g); g.fill(); });
@@ -621,6 +658,32 @@ function boltSprite() {
     g.lineWidth = 3; g.strokeStyle = '#bfe3ff'; circle(g, 0, 0, 16); g.stroke();
     poly(g, [[3, -12], [-8, 2], [-1, 2], [-4, 12], [8, -3], [1, -3]]);
     g.fillStyle = '#ffd60a'; g.fill(); g.lineWidth = 1.5; g.strokeStyle = '#b36b00'; g.stroke();
+  });
+}
+function magnetSprite() {
+  return sprite('magnet', 56, 56, g => {
+    g.save(); g.shadowColor = '#ff4d8d'; g.shadowBlur = 10 * SS;
+    const gr = g.createRadialGradient(-4, -5, 2, 0, 0, 17);
+    gr.addColorStop(0, '#ff75a8'); gr.addColorStop(1, '#9d174d');
+    g.fillStyle = gr; circle(g, 0, 0, 17); g.fill(); g.restore();
+    g.lineWidth = 3; g.strokeStyle = '#ffd6e7'; circle(g, 0, 0, 16); g.stroke();
+    g.lineCap = 'butt'; g.lineWidth = 5; g.strokeStyle = '#ff2d55';
+    g.beginPath(); g.arc(0, 1, 7, 0, Math.PI, false); g.stroke();
+    g.fillStyle = '#ff2d55'; g.fillRect(-9.5, -6, 5, 7); g.fillRect(4.5, -6, 5, 7);
+    g.fillStyle = '#eef4fc'; g.fillRect(-9.5, -9.5, 5, 4); g.fillRect(4.5, -9.5, 5, 4);
+  });
+}
+function shieldSprite() {
+  return sprite('shield', 56, 56, g => {
+    g.save(); g.shadowColor = '#00f5d4'; g.shadowBlur = 10 * SS;
+    const gr = g.createRadialGradient(-4, -5, 2, 0, 0, 17);
+    gr.addColorStop(0, '#72efdd'); gr.addColorStop(1, '#0369a1');
+    g.fillStyle = gr; circle(g, 0, 0, 17); g.fill(); g.restore();
+    g.lineWidth = 3; g.strokeStyle = '#c8f9ff'; circle(g, 0, 0, 16); g.stroke();
+    poly(g, [[0, -10], [9, -6], [8, 3], [0, 11], [-8, 3], [-9, -6]]);
+    g.fillStyle = '#e0fbff'; g.fill(); g.lineWidth = 1.6; g.strokeStyle = '#0284c7'; g.stroke();
+    poly(g, [[0, -6], [5, -3.5], [4.5, 2], [0, 7], [-4.5, 2], [-5, -3.5]]);
+    g.fillStyle = '#4cc9f0'; g.fill();
   });
 }
 function glowSprite(color) {
@@ -813,10 +876,11 @@ let t = 0, demoDist = 0;
 let dist = 0, speed = 0, px = W / 2, tx = W / 2;
 let lives = 3, maxLives = 3, coinsRun = 0, smashes = 0, invuln = 0, nitro = 0, shake = 0, flash = 0;
 let countdown = 0, goFlash = 0, overT = 0, offroad = false;
-let traffic = [], coins = [], bolts = [], parts = [], confetti = [], hazards = [], narrows = [];
-let nextRow = 0, nextCoin = 0, nextBolt = 0, nextHazard = 0, nextNarrow = 0, nextOncoming = 0;
+let traffic = [], coins = [], bolts = [], magnets = [], shields = [], parts = [], confetti = [], hazards = [], narrows = [];
+let nextRow = 0, nextCoin = 0, nextBolt = 0, nextMagnet = 0, nextShield = 0, nextHazard = 0, nextNarrow = 0, nextOncoming = 0;
 let prevFree = null, nextMilestone = 250, lastBiome = 0;
-let score = 0, newBest = false, popup = null, garageMsg = 0, garageMsgText = '', lastTick = 0;
+let score = 0, newBest = false, popup = null, garageMsg = 0, garageMsgText = '', garageTab = 'cars', lastTick = 0;
+let magnetT = 0, shieldOn = false, tankArmor = false;
 let activeStage = null, selectedStage = 0, unlockedAll = false;
 let stageTime = 0, crashes = 0, stageFailed = false, failReason = '', earnedStars = 0, starBonus = 0, goalResults = [];
 let goalStates = [], goalNotice = null, goalQueue = [], flyStars = [];
@@ -913,8 +977,8 @@ function usableLanesAt(D, pad) {
 const DUEL_CFG = [
   { startD: -60, duelPace: 0.965, coinW: 160, coinRange: 270, reactMul: 0.90, errMul: 0.95, laneRate: 6.5 },
   { startD: 10,  duelPace: 0.985, coinW: 260, coinRange: 340, reactMul: 0.78, errMul: 0.72, laneRate: 7.5 },
-  { startD: 85,  duelPace: 1.020, coinW: 420, coinRange: 430, reactMul: 0.62, errMul: 0.52, laneRate: 8.5 },
-  { startD: 170, duelPace: 1.055, coinW: 640, coinRange: 550, reactMul: 0.45, errMul: 0.35, laneRate: 10.0 },
+  { startD: 40,  duelPace: 0.995, coinW: 330, coinRange: 380, reactMul: 0.70, errMul: 0.60, laneRate: 8.0 },
+  { startD: 85,  duelPace: 1.015, coinW: 460, coinRange: 460, reactMul: 0.55, errMul: 0.45, laneRate: 8.8 },
 ];
 function initRival() {
   if (!activeStage || activeStage.type === 'finish') { rival = null; return; }
@@ -938,19 +1002,21 @@ function resetRunVars() {
   initRival();
   px = rival ? W / 2 - LANE * 0.5 : W / 2; tx = px;
   botLane = rival ? 1 : 2; botWait = 0;
-  maxLives = 3; lives = maxLives; coinsRun = 0; smashes = 0; crashes = 0; stageTime = 0;
+  maxLives = 3 + upLvl('heart'); lives = maxLives; coinsRun = 0; smashes = 0; crashes = 0; stageTime = 0;
   runHits = { traffic: 0, oncoming: 0, cones: 0, other: 0 };
-  invuln = 0; nitro = 0; shake = 0; flash = 0; stealPopCool = 0;
+  invuln = 0; nitro = 0; magnetT = 0; shieldOn = false; tankArmor = curCar().ability === 'armor';
+  shake = 0; flash = 0; stealPopCool = 0;
   iceT = 0; vxIce = 0; onSand = false; forcedMechs = []; forcedSharpD = null;
-  traffic = []; coins = []; bolts = []; parts = []; confetti = []; hazards = []; narrows = []; popup = null;
+  traffic = []; coins = []; bolts = []; magnets = []; shields = []; parts = []; confetti = []; hazards = []; narrows = []; popup = null;
   nextRow = 650; nextCoin = 900; nextBolt = activeStage ? 1700 : 2600;
+  nextMagnet = 1400; nextShield = 1800;
   nextHazard = 850; nextNarrow = 1600; nextOncoming = 1100;
   prevFree = null; nextMilestone = 250; lastBiome = activeStage ? activeStage.world : 0;
   countdown = 3; goFlash = 0; lastTick = 4;
   stageFailed = false; failReason = ''; pendingRewardCar = null; earnedStars = 0; starBonus = 0; goalResults = [];
   initGoalTracker();
 }
-function chooseLookaheadLane(D, curLane, nitroOn, coinW, boltW, errProb, coinRange, curPhysLane) {
+function chooseLookaheadLane(D, curLane, nitroOn, coinW, boltW, errProb, coinRange, curPhysLane, pickupW) {
   const usable = usableLanesAt(D + 220, 220);
   const closedNow = closedLaneAt(D, 60);
   let valid = usable.filter(l => l !== closedNow);
@@ -987,6 +1053,10 @@ function chooseLookaheadLane(D, curLane, nitroOn, coinW, boltW, errProb, coinRan
     }
     for (const c of coins) if (c.lane === l && c.D >= D + 10 && c.D <= cMaxD) sc += coinW;
     for (const b of bolts) if (b.lane === l && b.D >= D + 15 && b.D <= D + 380) sc += boltW;
+    if (pickupW) {
+      for (const m of magnets) if (m.lane === l && m.D >= D + 15 && m.D <= D + 380) sc += pickupW;
+      for (const s of shields) if (s.lane === l && s.D >= D + 15 && s.D <= D + 380) sc += pickupW;
+    }
     return { l, sc };
   });
   scored.sort((a, b) => b.sc - a.sc);
@@ -1341,12 +1411,12 @@ function spawnCoins(D) {
     coins.push({ lane, D: cd });
   }
 }
-function spawnBolt(D) {
+function spawnPickup(arr, D) {
   const usable = usableLanesAt(D, 160);
   if (!usable.length) return;
   const lane = usable[(Math.random() * usable.length) | 0];
-  if (traffic.some(c => c.lane === lane && Math.abs(c.D - D) < 100)) D += 160;
-  bolts.push({ lane, D });
+  if (traffic.some(c => c.lane === lane && Math.abs(c.D - D) < 100) || hazards.some(h => h.kind === 'cones' && h.lane === lane && D >= h.D - 80 && D <= h.D1 + 80)) D += 160;
+  arr.push({ lane, D });
 }
 function spawnOncoming(D) {
   if (closedLaneAt(D, 320) === 0) return false;
@@ -1429,6 +1499,16 @@ function steer(dt) {
 
 function damagePlayer(x, y, cause) {
   if (invuln > 0) return;
+  if (shieldOn || tankArmor) {
+    const fromTank = !shieldOn && tankArmor;
+    if (shieldOn) shieldOn = false;
+    else tankArmor = false;
+    invuln = 1.25; shake = 0.25;
+    burst(x, y, fromTank ? '#ffd60a' : '#4cc9f0', 18, 160, 'star');
+    blip(420, 220, 0.16, 'triangle', 0.08);
+    showPopup(fromTank ? 'שריון הטנק!' : 'המגן הציל!');
+    return;
+  }
   const k = (cause === 'traffic' || cause === 'oncoming' || cause === 'cones') ? cause : 'other';
   runHits[k]++;
   lives--; crashes++;
@@ -1508,12 +1588,14 @@ function updatePlay(dt) {
     }
   }
 
+  const topMul = curCar().ability === 'speed' ? 1.10 : 1;
   const slowMul = (offroad && nitro <= 0) ? 0.55 : (onSand && nitro <= 0 ? 0.58 : 1);
-  const target = base * (nitro > 0 ? 1.5 : 1) * slowMul;
+  const target = base * topMul * (nitro > 0 ? 1.5 : 1) * slowMul;
   speed += (target - speed) * Math.min(1, dt * (target < speed ? 3 : 1.4));
   dist += speed * dt;
   invuln = Math.max(0, invuln - dt);
   nitro = Math.max(0, nitro - dt);
+  magnetT = Math.max(0, magnetT - dt);
   iceT = Math.max(0, iceT - dt);
   shake = Math.max(0, shake - dt);
   flash = Math.max(0, flash - dt);
@@ -1532,9 +1614,23 @@ function updatePlay(dt) {
     nextCoin += (activeStage && activeStage.type === 'duel') ? (320 + Math.random() * 280) : (420 + Math.random() * 500);
   }
   while (nextBolt < horizon - 120) {
-    spawnBolt(nextBolt);
+    spawnPickup(bolts, nextBolt);
     nextBolt += activeStage ? (2100 + Math.random() * 1200) : (2600 + Math.random() * 1800);
   }
+  const magLvl = upLvl('magnet');
+  if (magLvl > 0) {
+    while (nextMagnet < horizon - 120) {
+      spawnPickup(magnets, nextMagnet);
+      nextMagnet += activeStage ? (2400 + Math.random() * 1300) : (2800 + Math.random() * 1700);
+    }
+  } else nextMagnet = Math.max(nextMagnet, dist + 900);
+  const shLvl = upLvl('shield');
+  if (shLvl > 0) {
+    while (nextShield < horizon - 120) {
+      spawnPickup(shields, nextShield);
+      nextShield += shLvl >= 2 ? (2100 + Math.random() * 1100) : (3200 + Math.random() * 1600);
+    }
+  } else nextShield = Math.max(nextShield, dist + 1100);
 
   if (hasMech('narrow')) {
     while (nextNarrow < horizon - 500) {
@@ -1580,6 +1676,8 @@ function updatePlay(dt) {
   traffic = traffic.filter(c => screenY(c.D, dist) < H + 120 && c.D > dist - 300);
   coins = coins.filter(c => screenY(c.D, dist) < H + 40);
   bolts = bolts.filter(c => screenY(c.D, dist) < H + 40);
+  magnets = magnets.filter(c => screenY(c.D, dist) < H + 40);
+  shields = shields.filter(c => screenY(c.D, dist) < H + 40);
   hazards = hazards.filter(h => screenY(h.D1 || h.D, dist) < H + 180);
   narrows = narrows.filter(n => screenY(n.D1, dist) < H + 260);
 
@@ -1587,8 +1685,17 @@ function updatePlay(dt) {
     const x = carX(c.lane, c.D, dist), y = screenY(c.D, dist);
     if (Math.abs(x - px) < (c.w + PW) / 2 * 0.78 && Math.abs(y - PLAYER_Y) < (c.h + PH) / 2 * 0.85) { hit(c); if (state !== 'play') return; }
   }
+  const magActive = magnetT > 0 || curCar().ability === 'magnet';
+  const magR = magnetT > 0 ? 235 : 120, magRate = magnetT > 0 ? 8.5 : 4.6;
+  const pLane = (px - (W / 2 - HALF)) / LANE - 0.5;
   for (let i = coins.length - 1; i >= 0; i--) {
-    const c = coins[i], x = carX(c.lane, c.D, dist), y = screenY(c.D, dist);
+    const c = coins[i];
+    let x = carX(c.lane, c.D, dist), y = screenY(c.D, dist);
+    if (magActive && Math.hypot(x - px, y - PLAYER_Y) < magR) {
+      c.D += (dist - c.D) * Math.min(1, dt * magRate);
+      c.lane += (pLane - c.lane) * Math.min(1, dt * magRate);
+      x = carX(c.lane, c.D, dist); y = screenY(c.D, dist);
+    }
     if (Math.abs(x - px) < 22 && Math.abs(y - PLAYER_Y) < 32) {
       coins.splice(i, 1); coinsRun++; save.coins++; persist(); coinSound();
       burst(x, y, '#ffe066', 6, 90, 'star');
@@ -1597,9 +1704,27 @@ function updatePlay(dt) {
   for (let i = bolts.length - 1; i >= 0; i--) {
     const c = bolts[i], x = carX(c.lane, c.D, dist), y = screenY(c.D, dist);
     if (Math.abs(x - px) < 24 && Math.abs(y - PLAYER_Y) < 34) {
-      bolts.splice(i, 1); nitro = 3.2; showPopup('טורבו!');
+      bolts.splice(i, 1); nitro = turboDur(); showPopup('טורבו!');
       burst(x, y, '#4cc9f0', 14, 140, 'star');
       blip(300, 1200, 0.4, 'sawtooth', 0.08); buzz(60);
+    }
+  }
+  for (let i = magnets.length - 1; i >= 0; i--) {
+    const c = magnets[i], x = carX(c.lane, c.D, dist), y = screenY(c.D, dist);
+    if (Math.abs(x - px) < 24 && Math.abs(y - PLAYER_Y) < 34) {
+      magnets.splice(i, 1); magnetT = MAGNET_DURS[clamp(upLvl('magnet'), 1, 3)];
+      showPopup('מגנט!');
+      burst(x, y, '#ff4d8d', 14, 140, 'star');
+      blip(440, 880, 0.25, 'triangle', 0.08); buzz(50);
+    }
+  }
+  for (let i = shields.length - 1; i >= 0; i--) {
+    const c = shields[i], x = carX(c.lane, c.D, dist), y = screenY(c.D, dist);
+    if (Math.abs(x - px) < 24 && Math.abs(y - PLAYER_Y) < 34) {
+      shields.splice(i, 1); shieldOn = true;
+      showPopup('מגן!');
+      burst(x, y, '#00f5d4', 14, 140, 'star');
+      blip(380, 740, 0.22, 'sine', 0.09); buzz(50);
     }
   }
   stealPopCool = Math.max(0, stealPopCool - dt);
@@ -1920,6 +2045,16 @@ function drawObjects() {
     if (y < -30 || y > H + 30) continue;
     blit(boltSprite(), x, y, 0, 1 + Math.sin(t * 8) * 0.08);
   }
+  for (const m of magnets) {
+    const x = carX(m.lane, m.D, dist), y = screenY(m.D, dist);
+    if (y < -30 || y > H + 30) continue;
+    blit(magnetSprite(), x, y, 0, 1 + Math.sin(t * 7 + 1) * 0.08);
+  }
+  for (const s of shields) {
+    const x = carX(s.lane, s.D, dist), y = screenY(s.D, dist);
+    if (y < -30 || y > H + 30) continue;
+    blit(shieldSprite(), x, y, 0, 1 + Math.sin(t * 7 + 2) * 0.08);
+  }
   for (const c of traffic) {
     const y = screenY(c.D, dist);
     if (y >= -70 && y <= H + 70) {
@@ -1989,7 +2124,23 @@ function drawPlayer() {
     blit(glowSprite('#4cc9f0'), px, PLAYER_Y, 0, 1.4);
     ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
   }
+  if (magnetT > 0 || curCar().ability === 'magnet') {
+    const pulse = magnetT > 0 ? (0.45 + 0.25 * Math.sin(t * 8)) : 0.24;
+    ctx.save(); ctx.strokeStyle = 'rgba(255,77,141,' + pulse + ')'; ctx.lineWidth = magnetT > 0 ? 2.5 : 1.5;
+    ctx.setLineDash([6, 5]); circle(ctx, px, PLAYER_Y, magnetT > 0 ? 34 : 28); ctx.stroke();
+    ctx.restore();
+  }
   blit(vehicleSprite(car.style, car.body, car.stripe), px, PLAYER_Y, clamp((tx - px) * 0.012 + vxIce * 0.0005, -0.28, 0.28));
+  if (shieldOn || tankArmor) {
+    const isSh = shieldOn;
+    const p = 0.7 + 0.3 * Math.sin(t * 6);
+    ctx.save();
+    ctx.fillStyle = isSh ? 'rgba(76,201,240,.14)' : 'rgba(255,214,10,.10)';
+    ctx.strokeStyle = isSh ? 'rgba(114,239,221,' + (0.65 * p) + ')' : 'rgba(255,214,10,' + (0.55 * p) + ')';
+    ctx.lineWidth = 2.4;
+    ctx.beginPath(); ctx.ellipse(px, PLAYER_Y, 21, 30, 0, 0, 6.2832); ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
 }
 
 function drawParts() {
@@ -2350,10 +2501,14 @@ function drawPauseScreen() {
 }
 
 function drawHud() {
-  pill(8, 10, 92, 34);
+  const hW = maxLives <= 3 ? 92 : 96;
+  pill(8, 10, hW, 34);
+  const hStep = maxLives >= 5 ? 17.5 : (maxLives === 4 ? 21 : 26);
+  const hX0 = maxLives >= 4 ? 21 : 28;
+  const hR = maxLives >= 5 ? 6.2 : (maxLives === 4 ? 7.0 : 8.5);
   for (let i = 0; i < maxLives; i++) {
-    if (i < lives) heart(28 + i * 26, 27, 8.5, '#ff4d6d', '#ffffff');
-    else heart(28 + i * 26, 27, 8.5, 'rgba(0,0,0,.35)', 'rgba(255,255,255,.35)');
+    if (i < lives) heart(hX0 + i * hStep, 27, hR, '#ff4d6d', '#ffffff');
+    else heart(hX0 + i * hStep, 27, hR, 'rgba(0,0,0,.35)', 'rgba(255,255,255,.35)');
   }
   if (activeStage) {
     drawJourneyProgress();
@@ -2375,7 +2530,13 @@ function drawHud() {
     ctx.fillStyle = 'rgba(0,0,0,.45)'; rr(W / 2 - 70, H - 36, 140, 14, 7); ctx.fill();
     const g = ctx.createLinearGradient(W / 2 - 70, 0, W / 2 + 70, 0);
     g.addColorStop(0, '#4cc9f0'); g.addColorStop(1, '#ffd60a');
-    ctx.fillStyle = g; rr(W / 2 - 70, H - 36, 140 * (nitro / 3.2), 14, 7); ctx.fill();
+    ctx.fillStyle = g; rr(W / 2 - 70, H - 36, 140 * clamp(nitro / turboDur(), 0, 1), 14, 7); ctx.fill();
+  }
+  if (magnetT > 0) {
+    const my = nitro > 0 ? H - 56 : H - 36;
+    const mMax = MAGNET_DURS[clamp(upLvl('magnet'), 1, 3)] || 5;
+    ctx.fillStyle = 'rgba(0,0,0,.45)'; rr(W / 2 - 55, my, 110, 12, 6); ctx.fill();
+    ctx.fillStyle = '#ff4d8d'; rr(W / 2 - 55, my, 110 * clamp(magnetT / mMax, 0, 1), 12, 6); ctx.fill();
   }
   drawSpeedometer();
   drawPauseButton();
@@ -2783,65 +2944,173 @@ function soundButton() {
   ui.push({ x: 10, y: 10, w: 44, h: 44, fn: () => { save.mute = !save.mute; persist(); audioInit(); if (save.mute) engineSet(false, 0); } });
 }
 
+function buyItem(id) {
+  const u = UPGRADES.find(x => x.id === id);
+  if (u) {
+    const lvl = upLvl(u.id);
+    if (lvl >= u.prices.length) return { ok: false, reason: 'max' };
+    const price = u.prices[lvl];
+    if (save.coins < price) return { ok: false, reason: 'coins' };
+    save.coins -= price; save.up[u.id] = lvl + 1; persist();
+    return { ok: true, id: u.id, level: lvl + 1, price };
+  }
+  let ci = -1;
+  if (typeof id === 'number') ci = id | 0;
+  else {
+    const s = String(id || '').trim();
+    if (/^\d+$/.test(s)) ci = parseInt(s, 10);
+    else if (/^car:?(\d+)$/i.test(s)) ci = parseInt(RegExp.$1, 10);
+    else ci = CARS.findIndex(c => c.name === s || c.ability === s);
+  }
+  if (ci < 0 || ci >= CARS.length) return { ok: false, reason: 'badId' };
+  if (save.owned.includes(ci)) return { ok: false, reason: 'owned' };
+  const c = CARS[ci];
+  if (c.bossWorld !== undefined) return { ok: false, reason: 'boss' };
+  if (save.coins < c.price) return { ok: false, reason: 'coins' };
+  save.coins -= c.price; save.owned.push(ci); save.car = ci; persist();
+  return { ok: true, car: ci, price: c.price };
+}
+
+function drawGarageCars(top, bottom) {
+  const gridBottom = bottom - 34;
+  const rows = Math.ceil(CARS.length / 3);
+  const rowH = Math.min(92, Math.floor((gridBottom - top) / rows));
+  const cw = 104, gap = 8;
+  CARS.forEach((c, i) => {
+    const col = i % 3, row = (i / 3) | 0;
+    const isLastSingle = i === CARS.length - 1 && col === 0;
+    const cx = isLastSingle ? W / 2 : W / 2 + (1 - col) * (cw + gap);
+    const cy = top + row * rowH + rowH / 2;
+    const owned = save.owned.includes(i), sel = save.car === i, isBossCar = c.bossWorld !== undefined;
+    const x0 = cx - cw / 2, y0 = cy - rowH / 2 + 3, ch = rowH - 6;
+    const g = ctx.createLinearGradient(0, y0, 0, y0 + ch);
+    g.addColorStop(0, sel ? 'rgba(45,189,90,.36)' : (c.ability ? 'rgba(0,210,255,.18)' : (isBossCar && owned ? 'rgba(255,214,10,.2)' : 'rgba(255,255,255,.12)')));
+    g.addColorStop(1, sel ? 'rgba(45,189,90,.12)' : 'rgba(255,255,255,.04)');
+    ctx.fillStyle = g; rr(x0, y0, cw, ch, 14); ctx.fill();
+    ctx.lineWidth = sel ? 2.6 : (c.ability || (isBossCar && owned) ? 1.8 : 1.2);
+    ctx.strokeStyle = sel ? '#5cff8d' : (c.ability ? '#4cc9f0' : (isBossCar && owned ? '#ffd60a' : 'rgba(255,255,255,.18)'));
+    ctx.stroke();
+    const sc = Math.min(1.02, (ch - 24) / 48);
+    blit(vehicleSprite(c.style, c.body, c.stripe), cx, cy - 8, sel ? Math.sin(t * 2) * 0.08 : 0, sc);
+    if (isBossCar && owned) drawCrown(x0 + cw - 13, y0 + 12, 5.2, '#ffd60a', '#6b3800');
+    if (!owned) {
+      ctx.fillStyle = 'rgba(5,8,20,.58)'; rr(x0, y0, cw, ch, 14); ctx.fill();
+      drawLock(cx, cy - 9, 8, isBossCar ? '#ffd60a' : '#fff');
+    }
+    if (c.badge) {
+      ctx.fillStyle = 'rgba(10,16,30,.82)'; rr(x0 + 5, y0 + 5, 22, 16, 8); ctx.fill();
+      text(c.badge, x0 + 16, y0 + 13.5, 11, '#ffd60a');
+    }
+    const ly = y0 + ch - 11;
+    if (sel) text('נבחרה', cx, ly, 12, '#7CFC00', OUT);
+    else if (owned) text(c.name, cx, ly, 12, '#fff', OUT);
+    else if (isBossCar) text('בוס ' + WORLDS[c.bossWorld].name, cx, ly, 11, '#ffd60a');
+    else {
+      blit(coinSprite(), cx + 14, ly, 0, 0.56);
+      text(String(c.price), cx + 4, ly + 0.5, 12, save.coins >= c.price ? '#ffe066' : '#ff8fa3', OUT, 'right');
+    }
+    ui.push({ x: x0, y: y0, w: cw, h: ch, fn: () => {
+      audioInit();
+      if (owned) { save.car = i; persist(); blip(600, 800, 0.1, 'square', 0.05); return; }
+      if (isBossCar) {
+        garageMsg = 1.6; garageMsgText = 'מנצחים את בוס ' + WORLDS[c.bossWorld].name + '!';
+        blip(160, 110, 0.2, 'square', 0.06); buzz(60); return;
+      }
+      const res = buyItem(i);
+      if (res.ok) {
+        coinSound(); blip(500, 1000, 0.3, 'square', 0.06);
+        burst(cx, cy, '#ffd60a', 20, 160, 'star');
+      } else {
+        garageMsg = 1.7; garageMsgText = c.abilityText ? (c.name + ': ' + c.abilityText + ' - צריך ' + c.price) : 'אין מספיק מטבעות, תאספו עוד!';
+        blip(160, 110, 0.2, 'square', 0.06); buzz(60);
+      }
+    } });
+  });
+  const selC = curCar();
+  ctx.fillStyle = 'rgba(10,16,30,.58)'; rr(16, bottom - 30, W - 32, 24, 12); ctx.fill();
+  text(garageMsg > 0 ? garageMsgText : (selC.name + ': ' + (selC.abilityText || 'עיצוב קלאסי')), W / 2, bottom - 17.5, 12, garageMsg > 0 ? '#ff8fa3' : '#e6f0ff');
+}
+
+function drawGarageUpgrades(top, bottom) {
+  const rowH = Math.min(126, Math.floor((bottom - top - 28) / UPGRADES.length));
+  UPGRADES.forEach((u, i) => {
+    const x0 = 16, y0 = top + i * rowH + 4, cw = W - 32, ch = rowH - 8;
+    const lvl = upLvl(u.id), maxed = lvl >= u.prices.length, price = maxed ? 0 : u.prices[lvl];
+    const g = ctx.createLinearGradient(0, y0, 0, y0 + ch);
+    g.addColorStop(0, maxed ? 'rgba(45,189,90,.28)' : 'rgba(255,255,255,.13)');
+    g.addColorStop(1, maxed ? 'rgba(45,189,90,.09)' : 'rgba(255,255,255,.04)');
+    ctx.fillStyle = g; rr(x0, y0, cw, ch, 18); ctx.fill();
+    ctx.lineWidth = 1.5; ctx.strokeStyle = maxed ? '#5cff8d' : 'rgba(255,255,255,.2)'; ctx.stroke();
+
+    const ix = x0 + cw - 30, iy = y0 + ch / 2;
+    ctx.fillStyle = 'rgba(10,16,30,.55)'; rr(ix - 22, iy - 22, 44, 44, 14); ctx.fill();
+    if (u.id === 'heart') heart(ix, iy, 12, '#ff4d6d', '#ffffff');
+    else if (u.id === 'turbo') blit(boltSprite(), ix, iy, 0, 0.85);
+    else if (u.id === 'magnet') blit(magnetSprite(), ix, iy, 0, 0.85);
+    else blit(shieldSprite(), ix, iy, 0, 0.85);
+
+    const rx = x0 + cw - 60;
+    text(u.name, rx, y0 + ch * 0.28, 17, '#ffffff', OUT, 'right');
+    for (let k = 0; k < u.prices.length; k++) {
+      ctx.fillStyle = k < lvl ? '#ffd60a' : 'rgba(255,255,255,.2)';
+      rr(rx - k * 19 - 15, y0 + ch * 0.49, 15, 6, 3); ctx.fill();
+    }
+    text(u.desc(lvl), rx, y0 + ch - 15, 11, '#c4d6e8', null, 'right');
+
+    const bw = 92, bh = Math.max(44, Math.min(50, ch - 20)), bx = x0 + 8, by = y0 + (ch - bh) / 2;
+    if (maxed) {
+      ctx.fillStyle = 'rgba(45,189,90,.28)'; rr(bx, by, bw, bh, 14); ctx.fill();
+      ctx.strokeStyle = '#5cff8d'; ctx.lineWidth = 1.5; ctx.stroke();
+      text('מקסימום!', bx + bw / 2, by + bh / 2 + 1, 13, '#7CFC00', OUT);
+    } else {
+      const can = save.coins >= price;
+      ctx.fillStyle = can ? '#2dbd5a' : 'rgba(60,72,96,.85)'; rr(bx, by, bw, bh, 14); ctx.fill();
+      ctx.strokeStyle = can ? '#7CFC00' : 'rgba(255,255,255,.22)'; ctx.lineWidth = 1.5; ctx.stroke();
+      blit(coinSprite(), bx + bw - 18, by + bh / 2, 0, 0.72);
+      text(String(price), bx + bw - 30, by + bh / 2 + 1, 15, can ? '#fff' : '#ff8fa3', OUT, 'right');
+      const buyFn = () => {
+        audioInit();
+        const res = buyItem(u.id);
+        if (res.ok) {
+          coinSound(); blip(540, 1020, 0.28, 'triangle', 0.08);
+          burst(ix, iy, u.color, 18, 150, 'star');
+        } else {
+          garageMsg = 1.5; garageMsgText = 'אין מספיק מטבעות, תאספו עוד!';
+          blip(160, 110, 0.2, 'square', 0.06); buzz(60);
+        }
+      };
+      ui.push({ x: x0, y: y0, w: cw, h: ch, fn: buyFn });
+    }
+  });
+  if (garageMsg > 0) text(garageMsgText, W / 2, bottom - 15, 13, '#ff8fa3', OUT);
+}
+
 function drawGarage() {
   activeStage = null;
   drawWorld(demoDist, false);
   const bg = ctx.createLinearGradient(0, 0, 0, H);
   bg.addColorStop(0, 'rgba(10,18,40,.92)'); bg.addColorStop(1, 'rgba(20,10,40,.88)');
   ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
-  title('המוסך', 36, 38);
-  ctx.fillStyle = 'rgba(255,255,255,.08)'; rr(W / 2 - 50, 62, 100, 30, 15); ctx.fill();
-  blit(coinSprite(), W / 2 - 26, 77, 0, 0.78);
-  text(String(save.coins), W / 2 - 10, 78, 20, '#ffe066', null, 'left');
-  const top = 100, bottom = H - 76;
-  const rows = Math.ceil(CARS.length / 2);
-  const rowH = Math.min(110, Math.floor((bottom - top) / rows));
-  CARS.forEach((c, i) => {
-    const col = i % 2, row = (i / 2) | 0;
-    const cx = W / 2 + (col === 0 ? 84 : -84), cy = top + row * rowH + rowH / 2;
-    const owned = save.owned.includes(i), sel = save.car === i, isBossCar = c.bossWorld !== undefined;
-    const x0 = cx - 78, y0 = cy - rowH / 2 + 4, cw = 156, ch = rowH - 8;
-    const g = ctx.createLinearGradient(0, y0, 0, y0 + ch);
-    g.addColorStop(0, sel ? 'rgba(45,189,90,.35)' : (isBossCar && owned ? 'rgba(255,214,10,.2)' : 'rgba(255,255,255,.12)'));
-    g.addColorStop(1, sel ? 'rgba(45,189,90,.12)' : 'rgba(255,255,255,.04)');
-    ctx.fillStyle = g; rr(x0, y0, cw, ch, 16); ctx.fill();
-    ctx.lineWidth = sel ? 3 : (isBossCar && owned ? 2 : 1.4);
-    ctx.strokeStyle = sel ? '#5cff8d' : (isBossCar && owned ? '#ffd60a' : 'rgba(255,255,255,.18)');
-    ctx.stroke();
-    const sc = Math.min(1.22, (ch - 28) / 50);
-    blit(vehicleSprite(c.style, c.body, c.stripe), cx, cy - 10, sel ? Math.sin(t * 2) * 0.08 : 0, sc);
-    if (isBossCar && owned) drawCrown(x0 + cw - 16, y0 + 14, 6.5, '#ffd60a', '#6b3800');
-    if (!owned) {
-      ctx.fillStyle = 'rgba(5,8,20,.6)'; rr(x0, y0, cw, ch, 16); ctx.fill();
-      drawLock(cx, cy - 11, 9.5, isBossCar ? '#ffd60a' : '#fff');
-    }
-    const ly = y0 + ch - 13;
-    if (sel) text('נבחרה', cx, ly, 15, '#7CFC00', OUT);
-    else if (owned) text(c.name, cx, ly, 15, '#fff', OUT);
-    else if (isBossCar) text('בוס ' + WORLDS[c.bossWorld].name, cx, ly, 12, '#ffd60a');
-    else {
-      blit(coinSprite(), cx + 16, ly, 0, 0.64);
-      text(String(c.price), cx + 4, ly + 1, 16, save.coins >= c.price ? '#ffe066' : '#ff8fa3', OUT, 'right');
-    }
-    ui.push({ x: x0, y: y0, w: cw, h: ch, fn: () => {
-      audioInit();
-      if (owned) { save.car = i; persist(); blip(600, 800, 0.1, 'square', 0.05); }
-      else if (isBossCar) {
-        garageMsg = 1.5; garageMsgText = 'מנצחים את בוס ' + WORLDS[c.bossWorld].name + '!';
-        blip(160, 110, 0.2, 'square', 0.06); buzz(60);
-      } else if (save.coins >= c.price) {
-        save.coins -= c.price; save.owned.push(i); save.car = i; persist();
-        coinSound(); blip(500, 1000, 0.3, 'square', 0.06);
-        burst(cx, cy, '#ffd60a', 20, 160, 'star');
-      } else {
-        garageMsg = 1.4; garageMsgText = 'אין מספיק מטבעות, תאספו עוד!';
-        blip(160, 110, 0.2, 'square', 0.06); buzz(60);
-      }
-    } });
-  });
+  title('המוסך', 26, 32);
+  ctx.fillStyle = 'rgba(255,255,255,.08)'; rr(W / 2 - 52, 48, 104, 26, 13); ctx.fill();
+  blit(coinSprite(), W / 2 - 28, 61, 0, 0.74);
+  text(String(save.coins), W / 2 - 12, 62, 18, '#ffe066', null, 'left');
+
+  const tabs = [['cars', 'מכוניות', W / 2 + 74], ['upgrades', 'שדרוגים', W / 2 - 74]];
+  for (const [id, label, tx0] of tabs) {
+    const act = garageTab === id;
+    ctx.fillStyle = act ? '#2a7de1' : 'rgba(255,255,255,.1)';
+    rr(tx0 - 66, 80, 132, 44, 15); ctx.fill();
+    ctx.lineWidth = act ? 2.2 : 1.2; ctx.strokeStyle = act ? '#90e0ef' : 'rgba(255,255,255,.2)'; ctx.stroke();
+    text(label, tx0, 103, 16, act ? '#ffffff' : '#b8cce0', act ? OUT : null);
+    ui.push({ x: tx0 - 66, y: 80, w: 132, h: 44, fn: () => { garageTab = id; blip(520, 660, 0.08, 'triangle', 0.04); } });
+  }
+
+  const top = 130, bottom = H - 62;
+  if (garageTab === 'upgrades') drawGarageUpgrades(top, bottom);
+  else drawGarageCars(top, bottom);
   drawParts();
-  if (garageMsg > 0) text(garageMsgText || 'אין מספיק מטבעות, תאספו עוד!', W / 2, bottom + 4, 15, '#ff8fa3', OUT);
-  button(W / 2, H - 38, 200, 48, 'חזרה', '#6c757d', '#41474d', () => { state = 'menu'; }, 22);
+  button(W / 2, H - 34, 200, 46, 'חזרה', '#6c757d', '#41474d', () => { state = 'menu'; }, 22);
 }
 
 function drawOver() {
@@ -3000,8 +3269,9 @@ window.__g = {
   warp(m) {
     dist = m * 50; demoDist = dist;
     nextRow = dist + 400; nextCoin = dist + 500; nextBolt = dist + 600;
+    nextMagnet = dist + 900; nextShield = dist + 1100;
     nextHazard = dist + 500; nextNarrow = dist + 900; nextOncoming = dist + 700;
-    traffic = []; coins = []; bolts = []; hazards = []; narrows = [];
+    traffic = []; coins = []; bolts = []; magnets = []; shields = []; hazards = []; narrows = [];
     iceT = 0; vxIce = 0;
     lastBiome = biomeAt(dist); nextMilestone = Math.ceil(m / 250) * 250 + 250;
   },
@@ -3069,6 +3339,10 @@ window.__g = {
       spawnHazard(norm === 'potholes' ? 'pothole' : norm, D, hasMech('oncoming') ? 2 : 1);
       return true;
     }
+    if (norm === 'magnet' || norm === 'shield') {
+      (norm === 'magnet' ? magnets : shields).push({ lane: hasMech('oncoming') ? 2 : 1, D: dist + 400 });
+      return true;
+    }
     return false;
   },
   addCoinsRun(n) {
@@ -3083,6 +3357,10 @@ window.__g = {
   },
   simRace(sec) {
     if (!activeStage) startStage(1);
+    if (dist === 0 && stageTime === 0) {
+      maxLives = 3 + upLvl('heart'); lives = maxLives;
+      tankArmor = curCar().ability === 'armor';
+    }
     const prevMute = save.mute;
     save.mute = true;
     countdown = 0; goFlash = 0; lastTick = 0;
@@ -3090,7 +3368,7 @@ window.__g = {
     const isDuel = activeStage && activeStage.type === 'duel';
     for (let i = 0; i < steps && state === 'play'; i++) {
       const physLane = clamp((px - (W / 2 - HALF)) / LANE - 0.5, 0, 3);
-      botLane = chooseLookaheadLane(dist, botLane, nitro > 0, isDuel ? 420 : 140, 420, 0, isDuel ? 420 : 320, physLane);
+      botLane = chooseLookaheadLane(dist, botLane, nitro > 0, isDuel ? 420 : 140, 420, 0, isDuel ? 420 : 320, physLane, 360);
       tx = clamp(carX(botLane, dist, dist), 24, W - 24);
       keys.left = false; keys.right = false;
       updatePlay(dt);
@@ -3106,6 +3384,9 @@ window.__g = {
       state
     };
   },
+  coins(n) { save.coins = Math.max(0, n | 0); persist(); return save.coins; },
+  buy(id) { return buyItem(id).ok; },
+  get upgrades() { return { ...save.up }; },
   pause() {
     if (state !== 'play' && state !== 'paused') {
       if (activeStage) startStage(selectedStage || 0);
