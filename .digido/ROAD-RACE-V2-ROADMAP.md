@@ -68,6 +68,12 @@ section 3. Target file: `classic/index.html` (one file, canvas 2D, Hebrew RTL, n
 - Done when: rival races look natural on screenshots, a decent bot beats world 1 rivals but not trivially, boss is
   clearly harder.
 
+## Phase C2 - Pause button (Rani, 2026-11-14)
+- On-screen pause button on the HUD during every run (Journey and Free ride), >= 44 px touch target, not covering
+  the goal chips or the speedometer. Pause screen: "המשך" (resume with the short countdown), "התחל מחדש" (restart
+  the same stage / run), "מפה" in Journey or "תפריט" in Free ride. Engine sound off while paused. Escape and app hide
+  keep working.
+
 ## Phase D - Upgrades and premium cars
 - Garage tabs: מכוניות / שדרוגים. Upgrades and prices per spec section 4 (extra heart, long turbo, magnet pickup,
   shield pickup). New pickups on the road (magnet pulls coins, shield absorbs one hit, visible ring).
