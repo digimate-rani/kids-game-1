@@ -72,9 +72,9 @@ const STAGES = [
   { id: 4,  world: 0, s: 4, name: 'בוס האחו',      type: 'boss',   length: 380, speedFactor: 1.12, traffic: 1.12, mech: ['laneChange'], rivalFactor: 1.02, starCoins: [40, 60, 90],
     goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'coins', n: 14, label: 'אסוף 14 מטבעות' }, { kind: 'nocrash', n: 0, label: 'סיים בלי התנגשות' }] },
   // World 1 - Desert
-  { id: 5,  world: 1, s: 0, name: 'כביש החולות',   type: 'finish', length: 300, speedFactor: 1.08, traffic: 1.00, mech: ['narrow', 'sand'], rivalFactor: 0.96, starCoins: [25, 40, 60],
+  { id: 5,  world: 1, s: 0, name: 'כביש החולות',   type: 'finish', length: 300, speedFactor: 1.08, traffic: 1.00, mech: ['sand'], rivalFactor: 0.96, starCoins: [25, 40, 60],
     goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'coins', n: 10, label: 'אסוף 10 מטבעות' }, { kind: 'nocrash', n: 0, label: 'סיים בלי התנגשות' }] },
-  { id: 6,  world: 1, s: 1, name: 'סופת אבק',      type: 'race',   length: 340, speedFactor: 1.12, traffic: 1.08, mech: ['narrow', 'sand', 'cones'], rivalFactor: 0.98, starCoins: [25, 45, 65],
+  { id: 6,  world: 1, s: 1, name: 'סופת אבק',      type: 'race',   length: 340, speedFactor: 1.12, traffic: 1.08, mech: ['narrow', 'sand'], rivalFactor: 0.98, starCoins: [25, 45, 65],
     goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'time', n: 52, label: 'סיים תוך 52 שניות' }, { kind: 'smash', n: 2, label: 'מעך 2 רכבים בטורבו' }] },
   { id: 7,  world: 1, s: 2, name: 'קניון הזהב',    type: 'duel',   length: 360, speedFactor: 1.15, traffic: 1.12, mech: ['sand', 'cones'], rivalFactor: 1.00, starCoins: [30, 50, 70],
     goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'coins', n: 15, label: 'אסוף 15 מטבעות' }, { kind: 'nocrash', n: 0, label: 'סיים בלי התנגשות' }] },
@@ -94,9 +94,9 @@ const STAGES = [
   { id: 14, world: 2, s: 4, name: 'בוס הקרח',      type: 'boss',   length: 540, speedFactor: 1.34, traffic: 1.34, mech: ['ice', 'sharpCurves', 'laneChange', 'cones'], rivalFactor: 1.06, starCoins: [70, 105, 150],
     goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'coins', n: 20, label: 'אסוף 20 מטבעות' }, { kind: 'nocrash', n: 0, label: 'סיים בלי התנגשות' }] },
   // World 3 - Night
-  { id: 15, world: 3, s: 0, name: 'אורות בחושך',   type: 'finish', length: 440, speedFactor: 1.28, traffic: 1.22, mech: ['oncoming', 'potholes'], rivalFactor: 1.01, starCoins: [50, 75, 105],
+  { id: 15, world: 3, s: 0, name: 'אורות בחושך',   type: 'finish', length: 440, speedFactor: 1.28, traffic: 1.22, mech: ['oncoming'], rivalFactor: 1.01, starCoins: [50, 75, 105],
     goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'coins', n: 14, label: 'אסוף 14 מטבעות' }, { kind: 'nocrash', n: 0, label: 'סיים בלי התנגשות' }] },
-  { id: 16, world: 3, s: 1, name: 'נתיב נגדי',     type: 'race',   length: 480, speedFactor: 1.32, traffic: 1.28, mech: ['oncoming', 'potholes', 'laneChange'], rivalFactor: 1.03, starCoins: [55, 85, 115],
+  { id: 16, world: 3, s: 1, name: 'נתיב נגדי',     type: 'race',   length: 480, speedFactor: 1.32, traffic: 1.28, mech: ['oncoming', 'potholes'], rivalFactor: 1.03, starCoins: [55, 85, 115],
     goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'time', n: 60, label: 'סיים תוך 60 שניות' }, { kind: 'smash', n: 3, label: 'מעך 3 רכבים בטורבו' }] },
   { id: 17, world: 3, s: 2, name: 'מרדף החצות',    type: 'duel',   length: 500, speedFactor: 1.36, traffic: 1.32, mech: ['oncoming', 'potholes', 'cones'], rivalFactor: 1.04, starCoins: [60, 90, 125],
     goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'coins', n: 22, label: 'אסוף 22 מטבעות' }, { kind: 'nocrash', n: 0, label: 'סיים בלי התנגשות' }] },
@@ -197,11 +197,37 @@ const buzz = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch (
 // ---------- helpers ----------
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const mod = (a, n) => ((a % n) + n) % n;
-const curve = d => 32 * Math.sin(d / 260) + 18 * Math.sin(d / 140 + 1.3);
 const hash = n => { n = (n * 374761393 + 668265263) | 0; n = (n ^ (n >>> 13)) * 1274126177 | 0; return (n ^ (n >>> 16)) >>> 0; };
 const stageBiomeLock = () => activeStage && (state === 'play' || state === 'paused' || state === 'stageCard' || state === 'stageOver');
 const biomeAt = D => stageBiomeLock() ? activeStage.world : mod(Math.floor(D / ZONE), 4);
 const HEB = /[֐-׿]/;
+
+function sharpWeightAt(d) {
+  if (stageBiomeLock()) {
+    if (activeStage.mech.includes('sharpCurves')) return 1;
+    return forcedSharpD !== null ? clamp((d - forcedSharpD) / 300, 0, 1) : 0;
+  }
+  if (state === 'play' || state === 'paused' || state === 'over') {
+    if (forcedSharpD !== null && d >= forcedSharpD) return clamp((d - forcedSharpD) / 300, 0, 1);
+    const i = Math.floor(d / ZONE), b = mod(i, 4), s = d - i * ZONE;
+    if (b === 2) {
+      if (s < 10000) return 0;
+      if (s < 12000) return (s - 10000) / 2000;
+      if (s > 28500) return (30000 - s) / 1500;
+      return 1;
+    }
+  }
+  return 0;
+}
+function curve(d) {
+  const base = 32 * Math.sin(d / 260) + 18 * Math.sin(d / 140 + 1.3);
+  const sw = sharpWeightAt(d);
+  if (sw <= 0) return base;
+  return base + sw * (22 * Math.sin(d / 125) + 14 * Math.cos(d / 85));
+}
+function curveSlope(d) {
+  return (curve(d + 8) - curve(d - 8)) / 16;
+}
 
 function rgb(hex) { const n = parseInt(hex.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
 function shade(hex, a) {
@@ -601,6 +627,87 @@ function cloudSprite() {
     }
   });
 }
+function coneSprite() {
+  return sprite('cone', 32, 32, g => {
+    withShadow(g, 3, 2, 3, 0.4, () => { g.fillStyle = '#c84b00'; rr(-10, -10, 20, 20, 4, g); g.fill(); });
+    g.fillStyle = '#ff6d00'; rr(-10, -10, 20, 20, 4, g); g.fill();
+    g.fillStyle = '#ffffff'; circle(g, 0, 0, 6.2); g.fill();
+    g.fillStyle = '#ff7b00'; circle(g, 0, 0, 3.6); g.fill();
+    g.fillStyle = '#ffd166'; circle(g, -1, -1, 1.4); g.fill();
+  });
+}
+function sandSprite() {
+  return sprite('sand', 58, 96, g => {
+    const gr = g.createRadialGradient(0, 0, 4, 0, 0, 44);
+    gr.addColorStop(0, 'rgba(232,191,116,.92)');
+    gr.addColorStop(0.7, 'rgba(218,172,92,.82)');
+    gr.addColorStop(1, 'rgba(218,172,92,0)');
+    g.fillStyle = gr;
+    g.beginPath(); g.ellipse(0, 0, 26, 44, 0, 0, 6.2832); g.fill();
+    g.strokeStyle = 'rgba(145,92,28,.45)'; g.lineWidth = 2; g.lineCap = 'round';
+    for (let y = -28; y <= 28; y += 14) {
+      g.beginPath();
+      g.moveTo(-14, y);
+      g.quadraticCurveTo(0, y - 5, 14, y + 1);
+      g.stroke();
+    }
+  });
+}
+function iceSprite() {
+  return sprite('ice', 62, 112, g => {
+    const gr = g.createRadialGradient(-4, -8, 4, 0, 0, 50);
+    gr.addColorStop(0, 'rgba(215,245,255,.94)');
+    gr.addColorStop(0.65, 'rgba(130,215,245,.82)');
+    gr.addColorStop(1, 'rgba(130,215,245,0)');
+    g.fillStyle = gr;
+    g.beginPath(); g.ellipse(0, 0, 27, 50, 0, 0, 6.2832); g.fill();
+    g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 2.2; g.lineCap = 'round';
+    g.beginPath();
+    g.moveTo(-12, -26); g.lineTo(10, -10);
+    g.moveTo(-14, 4); g.lineTo(12, 22);
+    g.moveTo(-4, -34); g.lineTo(14, -22);
+    g.stroke();
+  });
+}
+function potholeSprite() {
+  return sprite('pothole', 48, 40, g => {
+    g.fillStyle = '#8b93a1';
+    g.beginPath(); g.ellipse(0, 0, 19, 15, 0.15, 0, 6.2832); g.fill();
+    g.fillStyle = '#181b22';
+    g.beginPath(); g.ellipse(0, 1, 15, 11.5, 0.15, 0, 6.2832); g.fill();
+    g.fillStyle = '#0b0d12';
+    g.beginPath(); g.ellipse(1, 2, 10, 7, 0.15, 0, 6.2832); g.fill();
+    g.strokeStyle = 'rgba(200,210,225,.55)'; g.lineWidth = 1.2;
+    g.beginPath();
+    g.moveTo(-17, -4); g.lineTo(-22, -8);
+    g.moveTo(15, 6); g.lineTo(21, 10);
+    g.moveTo(-6, 13); g.lineTo(-9, 18);
+    g.stroke();
+  });
+}
+function signSprite(kind) {
+  return sprite('sign:' + kind, 38, 38, g => {
+    withShadow(g, 3, 2, 2, 0.45, () => {
+      g.fillStyle = '#222'; poly(g, [[0, -15], [15, 0], [0, 15], [-15, 0]]); g.fill();
+    });
+    g.fillStyle = kind === 'works' ? '#ff7b00' : '#ffd60a';
+    poly(g, [[0, -15], [15, 0], [0, 15], [-15, 0]]); g.fill();
+    g.lineWidth = 2; g.strokeStyle = '#1a1a1a'; g.stroke();
+    g.strokeStyle = '#1a1a1a'; g.fillStyle = '#1a1a1a'; g.lineWidth = 2.2;
+    if (kind === 'narrowL' || kind === 'narrowR') {
+      const s = kind === 'narrowL' ? -1 : 1;
+      g.beginPath();
+      g.moveTo(-s * 4, -8); g.lineTo(-s * 4, 8);
+      g.moveTo(s * 5, -8); g.lineTo(s * 5, -2); g.lineTo(s * 1, 3); g.lineTo(s * 1, 8);
+      g.stroke();
+    } else if (kind === 'works') {
+      poly(g, [[0, -7], [-5, 6], [5, 6]]); g.fill();
+    } else {
+      const dir = kind === 'curveL' ? -1 : 1;
+      g.beginPath(); g.moveTo(dir * -4, -6); g.lineTo(dir * 4, 0); g.lineTo(dir * -4, 6); g.stroke();
+    }
+  });
+}
 
 // textures (2x resolution, tiled)
 function texture(size, paint) {
@@ -663,11 +770,13 @@ let t = 0, demoDist = 0;
 let dist = 0, speed = 0, px = W / 2, tx = W / 2;
 let lives = 3, maxLives = 3, coinsRun = 0, smashes = 0, invuln = 0, nitro = 0, shake = 0, flash = 0;
 let countdown = 0, goFlash = 0, overT = 0, offroad = false;
-let traffic = [], coins = [], bolts = [], parts = [], confetti = [];
-let nextRow = 0, nextCoin = 0, nextBolt = 0, prevFree = null, nextMilestone = 250, lastBiome = 0;
+let traffic = [], coins = [], bolts = [], parts = [], confetti = [], hazards = [], narrows = [];
+let nextRow = 0, nextCoin = 0, nextBolt = 0, nextHazard = 0, nextNarrow = 0, nextOncoming = 0;
+let prevFree = null, nextMilestone = 250, lastBiome = 0;
 let score = 0, newBest = false, popup = null, garageMsg = 0, lastTick = 0;
 let activeStage = null, selectedStage = 0, unlockedAll = false;
 let stageTime = 0, crashes = 0, stageFailed = false, earnedStars = 0, starBonus = 0, goalResults = [];
+let iceT = 0, vxIce = 0, onSand = false, forcedMechs = [], forcedSharpD = null;
 let mapMsg = 0, mapMsgText = '';
 let ui = [];
 const lamps = [];
@@ -709,14 +818,62 @@ function spawnConfetti(n) {
   const cols = ['#ffd60a', '#ff4d6d', '#4cc9f0', '#7CFC00', '#ff9f1c', '#c77dff'];
   for (let i = 0; i < n; i++) confetti.push({ x: Math.random() * W, y: -20 - Math.random() * 300, vx: (Math.random() - 0.5) * 60, vy: 80 + Math.random() * 120, r: Math.random() * 6, vr: (Math.random() - 0.5) * 10, c: cols[i % cols.length], s: 4 + Math.random() * 4 });
 }
+function freeMechs(d) {
+  if (d < 7500) return [];
+  const i = Math.floor(d / ZONE), b = mod(i, 4), s = d - i * ZONE;
+  const list = [];
+  if (b === 0) list.push('laneChange');
+  else if (b === 1) {
+    list.push('sand', 'laneChange');
+    if (s >= 8000 || i >= 4) list.push('narrow');
+    if (s >= 15000 || i >= 4) list.push('cones');
+  } else if (b === 2) {
+    list.push('ice', 'laneChange');
+    if (s >= 10000 || i >= 4) list.push('sharpCurves');
+    if (i >= 4 && s >= 16000) list.push('cones');
+  } else {
+    list.push('oncoming', 'potholes');
+    if (s >= 10000 || i >= 4) list.push('laneChange');
+    if (i >= 4 && s >= 16000) list.push('cones');
+  }
+  return list;
+}
+function activeMechs() {
+  const base = activeStage ? activeStage.mech : freeMechs(dist);
+  if (!forcedMechs.length) return base;
+  const out = base.slice();
+  for (const m of forcedMechs) if (!out.includes(m)) out.push(m);
+  return out;
+}
+const hasMech = k => activeMechs().includes(k);
+
+function narrowAt(D, pad) {
+  pad = pad || 0;
+  for (const n of narrows) {
+    if (D >= n.D0 - pad && D <= n.D1 + pad) return n;
+  }
+  return null;
+}
+function closedLaneAt(D, pad) {
+  const n = narrowAt(D, pad);
+  return n ? (n.side < 0 ? 0 : 3) : -1;
+}
+function usableLanesAt(D, pad) {
+  const closed = closedLaneAt(D, pad);
+  const inc = hasMech('oncoming');
+  return [0, 1, 2, 3].filter(l => l !== closed && !(inc && l === 0));
+}
+
 function resetRunVars() {
   audioInit();
   state = 'play';
   dist = 0; speed = 150; px = W / 2; tx = px;
   maxLives = 3; lives = maxLives; coinsRun = 0; smashes = 0; crashes = 0; stageTime = 0;
   invuln = 0; nitro = 0; shake = 0; flash = 0;
-  traffic = []; coins = []; bolts = []; parts = []; confetti = []; popup = null;
+  iceT = 0; vxIce = 0; onSand = false; forcedMechs = []; forcedSharpD = null;
+  traffic = []; coins = []; bolts = []; parts = []; confetti = []; hazards = []; narrows = []; popup = null;
   nextRow = 650; nextCoin = 900; nextBolt = activeStage ? 1700 : 2600;
+  nextHazard = 850; nextNarrow = 1600; nextOncoming = 1100;
   prevFree = null; nextMilestone = 250; lastBiome = activeStage ? activeStage.world : 0;
   countdown = 3; goFlash = 0; lastTick = 4;
   stageFailed = false; earnedStars = 0; starBonus = 0; goalResults = [];
@@ -783,36 +940,113 @@ function pickType(single) {
   return Math.random() < 0.08 ? 'police' : 'sedan';
 }
 function spawnRow(D) {
+  const usable = usableLanesAt(D, 220).filter(l => !hazards.some(h => h.kind === 'cones' && h.lane === l && D >= h.D - 180 && D <= h.D1 + 180));
+  if (usable.length <= 1) { prevFree = usable.length ? usable : [1, 2]; return; }
   let lanes = null, free = null;
-  for (let tries = 0; tries < 6; tries++) {
-    const n = Math.random() < 0.62 ? 1 : 2;
+  const maxSpawn = Math.min(usable.length - 1, 2);
+  for (let tries = 0; tries < 8; tries++) {
+    const n = (maxSpawn >= 2 && Math.random() >= 0.62) ? 2 : 1;
     lanes = [];
-    while (lanes.length < n) { const l = (Math.random() * 4) | 0; if (!lanes.includes(l)) lanes.push(l); }
-    free = [0, 1, 2, 3].filter(l => !lanes.includes(l));
+    while (lanes.length < n) { const l = usable[(Math.random() * usable.length) | 0]; if (!lanes.includes(l)) lanes.push(l); }
+    free = usable.filter(l => !lanes.includes(l));
     if (!prevFree || free.some(l => prevFree.includes(l))) break;
-    if (tries === 5) { lanes = [lanes[0]]; free = [0, 1, 2, 3].filter(l => l !== lanes[0]); }
+    if (tries === 7) {
+      const keep = prevFree.find(l => usable.includes(l)) ?? usable[0];
+      const pick = usable.find(l => l !== keep);
+      lanes = [pick]; free = usable.filter(l => l !== pick);
+    }
   }
   prevFree = free;
+  const lcOn = hasMech('laneChange');
+  const td = activeStage ? activeStage.traffic : 1;
+  const lcProb = activeStage ? clamp(0.24 + (td - 0.8) * 0.45, 0.22, 0.55) : 0.30;
   for (const l of lanes) {
     const type = pickType(lanes.length === 1);
     const d = BIG[type] || [PW, PH];
     const color = type === 'police' ? '#f4f4f4' : type === 'bus' ? '#ffb703' : TRAFFIC_COLORS[(Math.random() * TRAFFIC_COLORS.length) | 0];
-    traffic.push({ lane: l, D, type, w: d[0], h: d[1], color, spr: vehicleSprite(type, color, null) });
+    const car = { lane: l, D, type, w: d[0], h: d[1], color, spr: vehicleSprite(type, color, null), rot: 0 };
+    if (lcOn && lanes.length === 1 && (type === 'sedan' || type === 'van') && free.length >= 2 && Math.random() < lcProb) {
+      const dirs = [-1, 1].filter(dir => {
+        const nl = l + dir;
+        return usable.includes(nl) && !traffic.some(o => Math.abs(o.lane - nl) < 0.6 && Math.abs(o.D - D) < 220) && !hazards.some(h => h.kind === 'cones' && h.lane === nl && Math.abs(h.D - D) < 220);
+      });
+      if (dirs.length) {
+        const dir = dirs[(Math.random() * dirs.length) | 0];
+        car.shiftDir = dir; car.fromLane = l; car.targetLane = l + dir;
+        car.blinkT = 0.85; car.moveT = 0; car.triggered = false;
+      }
+    }
+    traffic.push(car);
     coins = coins.filter(c => !(c.lane === l && Math.abs(c.D - D) < 120));
   }
 }
 function spawnCoins(D) {
-  const lane = (Math.random() * 4) | 0;
+  const usable = usableLanesAt(D, 160);
+  if (!usable.length) return;
+  const lane = usable[(Math.random() * usable.length) | 0];
   for (let i = 0; i < 5; i++) {
     const cd = D + i * 48;
+    if (lane === closedLaneAt(cd, 160)) continue;
     if (traffic.some(c => c.lane === lane && Math.abs(c.D - cd) < 100)) continue;
+    if (hazards.some(h => h.kind === 'cones' && h.lane === lane && cd >= h.D - 80 && cd <= h.D1 + 80)) continue;
     coins.push({ lane, D: cd });
   }
 }
 function spawnBolt(D) {
-  const lane = (Math.random() * 4) | 0;
+  const usable = usableLanesAt(D, 160);
+  if (!usable.length) return;
+  const lane = usable[(Math.random() * usable.length) | 0];
   if (traffic.some(c => c.lane === lane && Math.abs(c.D - D) < 100)) D += 160;
   bolts.push({ lane, D });
+}
+function spawnOncoming(D) {
+  if (closedLaneAt(D, 320) === 0) return false;
+  if (traffic.some(c => c.oncoming && Math.abs(c.D - D) < 380)) return false;
+  const type = Math.random() < 0.2 ? 'van' : (Math.random() < 0.1 ? 'police' : 'sedan');
+  const d = BIG[type] || [PW, PH];
+  const color = type === 'police' ? '#f4f4f4' : TRAFFIC_COLORS[(Math.random() * TRAFFIC_COLORS.length) | 0];
+  traffic.push({ lane: 0, D, type, w: d[0], h: d[1], color, spr: vehicleSprite(type, color, null), oncoming: true, rot: 0 });
+  coins = coins.filter(c => !(c.lane === 0 && Math.abs(c.D - D) < 140));
+  return true;
+}
+function spawnNarrow(D) {
+  if (narrows.some(n => D < n.D1 + 500 && D + 2100 > n.D0 - 500)) return false;
+  const finishD = activeStage ? activeStage.length * 50 : Infinity;
+  const len = Math.min(1500 + Math.random() * 500, finishD - D - 260);
+  if (len < 650) return false;
+  const side = hasMech('oncoming') ? 1 : (Math.random() < 0.5 ? -1 : 1);
+  const closed = side < 0 ? 0 : 3;
+  narrows.push({ D0: D, D1: D + len, side });
+  traffic = traffic.filter(c => !(Math.round(c.lane) === closed && c.D >= D - 220 && c.D <= D + len + 220));
+  coins = coins.filter(c => !(c.lane === closed && c.D >= D - 180 && c.D <= D + len + 180));
+  hazards = hazards.filter(h => !(h.lane === closed && h.D >= D - 200 && h.D <= D + len + 200));
+  return true;
+}
+function spawnHazard(kind, D, forcedLane) {
+  const usable = usableLanesAt(D, 200);
+  if (usable.length <= 1 && kind === 'cones') return false;
+  let candidates = usable.filter(l => {
+    if (kind === 'cones') {
+      if (traffic.some(c => Math.round(c.lane) === l && Math.abs(c.D - D) < 200)) return false;
+      const others = usable.filter(o => o !== l && !traffic.some(c => Math.round(c.lane) === o && Math.abs(c.D - D) < 160));
+      if (!others.length) return false;
+      if (prevFree && !others.some(o => prevFree.includes(o))) return false;
+    } else {
+      if (hazards.some(h => h.lane === l && Math.abs(h.D - D) < 130)) return false;
+      if (kind === 'pothole' && traffic.some(c => Math.round(c.lane) === l && Math.abs(c.D - D) < 100)) return false;
+    }
+    return true;
+  });
+  if (forcedLane != null && usable.includes(forcedLane)) candidates = [forcedLane];
+  if (!candidates.length) return false;
+  const lane = candidates[(Math.random() * candidates.length) | 0];
+  if (kind === 'cones') {
+    hazards.push({ kind: 'cones', lane, D, D1: D + 96, warnD: D - 140, cones: [{ D, smashed: false }, { D: D + 48, smashed: false }, { D: D + 96, smashed: false }] });
+    coins = coins.filter(c => !(c.lane === lane && c.D >= D - 60 && c.D <= D + 140));
+  } else {
+    hazards.push({ kind, lane, D, hit: false });
+  }
+  return true;
 }
 function burst(x, y, color, n, power, kind) {
   for (let i = 0; i < n; i++) {
@@ -826,8 +1060,32 @@ function steer(dt) {
   if (keys.left) tx -= 430 * dt;
   if (keys.right) tx += 430 * dt;
   tx = clamp(tx, 16, W - 16);
-  px += (tx - px) * Math.min(1, dt * 11);
+  const sw = sharpWeightAt(dist);
+  if (sw > 0 && countdown <= 0) {
+    const drift = curveSlope(dist) * speed * 0.08 * sw;
+    px = clamp(px - drift * dt, 16, W - 16);
+    tx = clamp(tx - drift * dt * 0.45, 16, W - 16);
+  }
+  if (iceT > 0) {
+    const wantVx = (tx - px) * 3.2;
+    vxIce += (wantVx - vxIce) * Math.min(1, dt * 3.5);
+    px += vxIce * dt;
+  } else {
+    vxIce *= Math.pow(0.05, dt);
+    px += (tx - px) * Math.min(1, dt * 11);
+  }
   px = clamp(px, 16, W - 16);
+}
+
+function damagePlayer(x, y) {
+  if (invuln > 0) return;
+  lives--; crashes++;
+  invuln = 1.7; shake = 0.4; flash = 0.25;
+  speed *= 0.45;
+  burst(x, y, '#ffb703', 14, 140);
+  for (let i = 0; i < 5; i++) parts.push({ x, y, vx: (Math.random() - 0.5) * 60, vy: speed * 0.3 + Math.random() * 40, life: 0.9, max: 0.9, color: '#6b7078', size: 9, kind: 'puff' });
+  crashSound(); buzz(180);
+  if (lives <= 0) endRun();
 }
 
 function hit(car) {
@@ -842,14 +1100,7 @@ function hit(car) {
     showPopup('בום!');
     return;
   }
-  if (invuln > 0) return;
-  lives--; crashes++;
-  invuln = 1.7; shake = 0.4; flash = 0.25;
-  speed *= 0.45;
-  burst(x, y, '#ffb703', 14, 140);
-  for (let i = 0; i < 5; i++) parts.push({ x, y, vx: (Math.random() - 0.5) * 60, vy: speed * 0.3 + Math.random() * 40, life: 0.9, max: 0.9, color: '#6b7078', size: 9, kind: 'puff' });
-  crashSound(); buzz(180);
-  if (lives <= 0) endRun();
+  damagePlayer(x, y);
 }
 
 function updatePlay(dt) {
@@ -867,12 +1118,51 @@ function updatePlay(dt) {
   const td = activeStage ? activeStage.traffic : 1;
   const finishD = activeStage ? activeStage.length * 50 : Infinity;
   const base = activeStage ? (320 * sf + Math.min(60, dist / 400)) : (320 + Math.min(280, dist / 90));
-  offroad = Math.abs(px - W / 2) > HALF + 6;
-  const target = base * (nitro > 0 ? 1.5 : 1) * (offroad && nitro <= 0 ? 0.55 : 1);
+
+  const nNow = narrowAt(dist, 0);
+  const closedOff = nNow ? (nNow.side < 0 ? px < W / 2 - HALF + LANE - 2 : px > W / 2 + HALF - LANE + 2) : false;
+  offroad = Math.abs(px - W / 2) > HALF + 6 || closedOff;
+
+  onSand = false;
+  for (const h of hazards) {
+    const x = carX(h.lane, h.D, dist), y = screenY(h.D, dist);
+    if (h.kind === 'sand' && Math.abs(x - px) < 26 && Math.abs(y - PLAYER_Y) < 44) onSand = true;
+    else if (h.kind === 'ice' && Math.abs(x - px) < 28 && Math.abs(y - PLAYER_Y) < 52) {
+      if (iceT <= 0.1 && !popup) showPopup('קרח!', 'הזהרו מהחלקה');
+      iceT = 0.85;
+    } else if (h.kind === 'pothole' && !h.hit && Math.abs(x - px) < 20 && Math.abs(y - PLAYER_Y) < 22) {
+      h.hit = true;
+      if (nitro <= 0) {
+        speed *= 0.62; shake = Math.max(shake, 0.2);
+        blip(140, 75, 0.14, 'triangle', 0.06);
+        burst(x, y, '#4a4e58', 8, 90);
+        if (!popup) showPopup('בור!', 'איבדת מהירות');
+      }
+    } else if (h.kind === 'cones') {
+      for (const cn of h.cones) {
+        if (cn.smashed) continue;
+        const cx = carX(h.lane, cn.D, dist), cy = screenY(cn.D, dist);
+        if (Math.abs(cx - px) < 20 && Math.abs(cy - PLAYER_Y) < 24) {
+          cn.smashed = true;
+          if (nitro > 0) {
+            burst(cx, cy, '#ff6d00', 12, 140);
+            blip(280, 90, 0.15, 'sawtooth', 0.07);
+          } else {
+            damagePlayer(cx, cy);
+            if (state !== 'play') return;
+          }
+        }
+      }
+    }
+  }
+
+  const slowMul = (offroad && nitro <= 0) ? 0.55 : (onSand && nitro <= 0 ? 0.58 : 1);
+  const target = base * (nitro > 0 ? 1.5 : 1) * slowMul;
   speed += (target - speed) * Math.min(1, dt * (target < speed ? 3 : 1.4));
   dist += speed * dt;
   invuln = Math.max(0, invuln - dt);
   nitro = Math.max(0, nitro - dt);
+  iceT = Math.max(0, iceT - dt);
   shake = Math.max(0, shake - dt);
   flash = Math.max(0, flash - dt);
   if (popup && (popup.life -= dt) <= 0) popup = null;
@@ -891,11 +1181,52 @@ function updatePlay(dt) {
     nextBolt += activeStage ? (2100 + Math.random() * 1200) : (2600 + Math.random() * 1800);
   }
 
+  if (hasMech('narrow')) {
+    while (nextNarrow < horizon - 500) {
+      spawnNarrow(nextNarrow + 260);
+      nextNarrow += (3200 / Math.max(0.85, td)) + Math.random() * 1400;
+    }
+  } else nextNarrow = Math.max(nextNarrow, dist + 1400);
+
+  if (hasMech('oncoming')) {
+    while (nextOncoming < horizon + 120) {
+      spawnOncoming(nextOncoming);
+      nextOncoming += Math.max(760, 1250 / td) + Math.random() * 650;
+    }
+  } else nextOncoming = Math.max(nextOncoming, dist + 900);
+
+  const hazKinds = ['sand', 'cones', 'ice', 'potholes'].filter(hasMech);
+  if (hazKinds.length) {
+    while (nextHazard < horizon - 120) {
+      const k = hazKinds[(Math.random() * hazKinds.length) | 0];
+      spawnHazard(k === 'potholes' ? 'pothole' : k, nextHazard);
+      nextHazard += Math.max(360, 720 / Math.max(0.85, td)) + Math.random() * 480;
+    }
+  } else nextHazard = Math.max(nextHazard, dist + 700);
+
   const ts = base * 0.42;
-  for (const c of traffic) c.D += ts * dt;
-  traffic = traffic.filter(c => screenY(c.D, dist) < H + 120);
+  for (const c of traffic) {
+    if (c.oncoming) { c.D -= ts * 0.85 * dt; continue; }
+    c.D += ts * dt;
+    if (c.shiftDir) {
+      if (!c.triggered && c.D - dist <= 480 && c.D - dist > 100) c.triggered = true;
+      if (c.triggered) {
+        if (c.blinkT > 0) c.blinkT -= dt;
+        else if (c.moveT < 1) {
+          c.moveT = Math.min(1, c.moveT + dt / 0.45);
+          const ease = c.moveT * c.moveT * (3 - 2 * c.moveT);
+          c.lane = c.fromLane + c.shiftDir * ease;
+          c.rot = c.shiftDir * 0.16 * Math.sin(c.moveT * Math.PI);
+          if (c.moveT >= 1) { c.lane = c.targetLane; c.rot = 0; c.shiftDir = 0; }
+        }
+      }
+    }
+  }
+  traffic = traffic.filter(c => screenY(c.D, dist) < H + 120 && c.D > dist - 300);
   coins = coins.filter(c => screenY(c.D, dist) < H + 40);
   bolts = bolts.filter(c => screenY(c.D, dist) < H + 40);
+  hazards = hazards.filter(h => screenY(h.D1 || h.D, dist) < H + 180);
+  narrows = narrows.filter(n => screenY(n.D1, dist) < H + 260);
 
   for (const c of traffic.slice()) {
     const x = carX(c.lane, c.D, dist), y = screenY(c.D, dist);
@@ -923,9 +1254,12 @@ function updatePlay(dt) {
     if (m >= nextMilestone) { if (!popup) showPopup(String(m), 'מטר'); nextMilestone += 250; }
   }
 
-  if (offroad && nitro <= 0 && Math.random() < dt * 30) {
-    const dc = ['#8a6a3a', '#d9b56e', '#ffffff', '#5a4a30'][biomeAt(dist)];
+  if ((offroad || onSand) && nitro <= 0 && Math.random() < dt * 30) {
+    const dc = onSand ? '#e2bd73' : ['#8a6a3a', '#d9b56e', '#ffffff', '#5a4a30'][biomeAt(dist)];
     parts.push({ x: px + (Math.random() - 0.5) * 20, y: PLAYER_Y + 20, vx: (Math.random() - 0.5) * 50, vy: speed * 0.35, life: 0.6, max: 0.6, color: dc, size: 7, kind: 'puff' });
+  }
+  if (iceT > 0 && Math.random() < dt * 24) {
+    parts.push({ x: px + (Math.random() - 0.5) * 18, y: PLAYER_Y + 20, vx: (Math.random() - 0.5) * 35, vy: speed * 0.3, life: 0.4, max: 0.4, color: '#b8f2ff', size: 3.5, kind: 'sq' });
   }
   if (nitro > 0) {
     parts.push({ x: px + (Math.random() - 0.5) * 10, y: PLAYER_Y + 24, vx: (Math.random() - 0.5) * 30, vy: 260 + Math.random() * 120, life: 0.3, max: 0.3, color: Math.random() < 0.5 ? '#ffb703' : '#ff6b35', size: 3 + Math.random() * 3, kind: 'sq' });
@@ -1034,6 +1368,9 @@ function drawRoad(vd) {
   ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 2.5;
   line(-HALF + 8); ctx.stroke(); line(HALF - 8); ctx.stroke();
 
+  const isGame = state === 'play' || state === 'paused' || state === 'over' || state === 'stageOver';
+  const showOncoming = isGame && hasMech('oncoming');
+
   ctx.strokeStyle = 'rgba(255,255,255,.88)'; ctx.lineWidth = 3.5; ctx.lineCap = 'round';
   ctx.beginPath();
   const DL = 64;
@@ -1041,11 +1378,106 @@ function drawRoad(vd) {
     if (j & 1) continue;
     const D0 = j * DL, D1 = D0 + DL * 0.6, Dm = (D0 + D1) / 2;
     for (let i = 1; i < 4; i++) {
+      if (i === 1 && showOncoming) continue;
       const o = (i - 2) * LANE;
       ctx.moveTo(ex(D0, o), screenY(D0, vd)); ctx.lineTo(ex(Dm, o), screenY(Dm, vd)); ctx.lineTo(ex(D1, o), screenY(D1, vd));
     }
   }
   ctx.stroke(); ctx.lineCap = 'butt';
+
+  if (showOncoming) {
+    // Yellow double dashed divider between oncoming lane 0 and lane 1
+    ctx.strokeStyle = '#ffd60a'; ctx.lineWidth = 2.6;
+    ctx.beginPath();
+    for (let j = Math.floor(Dbot / DL); j <= Math.floor(Dtop / DL); j++) {
+      if (j & 1) continue;
+      const D0 = j * DL, D1 = D0 + DL * 0.65, Dm = (D0 + D1) / 2;
+      for (const dx of [-3.5, 3.5]) {
+        ctx.moveTo(ex(D0, -LANE + dx), screenY(D0, vd));
+        ctx.lineTo(ex(Dm, -LANE + dx), screenY(Dm, vd));
+        ctx.lineTo(ex(D1, -LANE + dx), screenY(D1, vd));
+      }
+    }
+    ctx.stroke();
+    // Yellow downward arrows in lane 0
+    ctx.fillStyle = 'rgba(255, 214, 10, 0.55)';
+    const AL = 190;
+    for (let j = Math.floor(Dbot / AL); j <= Math.floor(Dtop / AL); j++) {
+      const D = j * AL + 40;
+      if (D < Dbot || D > Dtop) continue;
+      const ax = ex(D, -1.5 * LANE), ay = screenY(D, vd);
+      poly(ctx, [[ax, ay + 14], [ax - 10, ay - 2], [ax - 4, ay - 2], [ax - 4, ay - 14], [ax + 4, ay - 14], [ax + 4, ay - 2], [ax + 10, ay - 2]]);
+      ctx.fill();
+    }
+  }
+
+  if (isGame && narrows.length) {
+    const cSpr = coneSprite();
+    for (const n of narrows) {
+      if (n.D1 < Dbot - 120 || n.D0 > Dtop + 320) continue;
+      const a = n.side < 0 ? -HALF + 6 : LANE;
+      const b = n.side < 0 ? -LANE : HALF - 6;
+      const d0 = Math.max(Dbot, n.D0), d1 = Math.min(Dtop, n.D1);
+      if (d1 > d0) {
+        ctx.fillStyle = 'rgba(34, 30, 26, 0.86)';
+        ctx.beginPath();
+        for (let D = d1; D >= d0; D -= 16) ctx.lineTo(ex(D, a), screenY(D, vd));
+        ctx.lineTo(ex(d0, a), screenY(d0, vd));
+        for (let D = d0; D <= d1; D += 16) ctx.lineTo(ex(D, b), screenY(D, vd));
+        ctx.lineTo(ex(d1, b), screenY(d1, vd));
+        ctx.closePath(); ctx.fill();
+
+        ctx.fillStyle = 'rgba(255, 183, 3, 0.55)';
+        ctx.beginPath();
+        for (let j = Math.floor(d0 / 28); j <= Math.floor(d1 / 28); j++) {
+          const sa = Math.max(d0, j * 28), sb = Math.min(d1, sa + 11);
+          if (sb <= sa) continue;
+          ctx.moveTo(ex(sa, a), screenY(sa, vd));
+          ctx.lineTo(ex(sb, a), screenY(sb, vd));
+          ctx.lineTo(ex(Math.min(d1, sb + 10), b), screenY(Math.min(d1, sb + 10), vd));
+          ctx.lineTo(ex(Math.min(d1, sa + 10), b), screenY(Math.min(d1, sa + 10), vd));
+          ctx.closePath();
+        }
+        ctx.fill();
+
+        ctx.strokeStyle = '#ff9f1c'; ctx.lineWidth = 3;
+        ctx.beginPath();
+        for (let D = d0; D <= d1; D += 16) {
+          const bx = ex(D, n.side * LANE), by = screenY(D, vd);
+          if (D === d0) ctx.moveTo(bx, by); else ctx.lineTo(bx, by);
+        }
+        ctx.lineTo(ex(d1, n.side * LANE), screenY(d1, vd));
+        ctx.stroke();
+
+        for (let Dc = n.D0 + 24; Dc <= n.D1 - 16; Dc += 84) {
+          if (Dc < Dbot || Dc > Dtop) continue;
+          blit(cSpr, ex(Dc, n.side * (LANE + 10)), screenY(Dc, vd));
+        }
+      }
+      // Entry taper cones
+      for (const [dt, off] of [[-55, n.side * (HALF - 12)], [-25, n.side * (LANE + 24)]]) {
+        const Dc = n.D0 + dt;
+        if (Dc >= Dbot && Dc <= Dtop) blit(cSpr, ex(Dc, off), screenY(Dc, vd));
+      }
+      // Advance warning signs on shoulder
+      const wSpr = signSprite(n.side < 0 ? 'narrowL' : 'narrowR');
+      for (const dw of [n.D0 - 280, n.D0 - 110]) {
+        if (dw >= Dbot && dw <= Dtop) blit(wSpr, ex(dw, n.side * (HALF + 22)), screenY(dw, vd));
+      }
+    }
+  }
+
+  if (isGame && sharpWeightAt(vd) > 0.2) {
+    const SP = 180;
+    for (let j = Math.floor(Dbot / SP); j <= Math.floor(Dtop / SP); j++) {
+      const D = j * SP;
+      const sl = curveSlope(D);
+      if (Math.abs(sl) < 0.24) continue;
+      const s = sl > 0 ? 1 : -1;
+      const cSpr = signSprite(s > 0 ? 'curveR' : 'curveL');
+      blit(cSpr, ex(D, -s * (HALF + 22)), screenY(D, vd));
+    }
+  }
 }
 
 function drawDecor(vd) {
@@ -1090,6 +1522,36 @@ function drawClouds(vd, a) {
 
 function drawObjects() {
   const cs = coinSprite();
+  for (const h of hazards) {
+    if (h.kind === 'sand') {
+      const y = screenY(h.D, dist);
+      if (y < -90 || y > H + 90) continue;
+      blit(sandSprite(), carX(h.lane, h.D, dist), y);
+    } else if (h.kind === 'ice') {
+      const y = screenY(h.D, dist);
+      if (y < -110 || y > H + 110) continue;
+      blit(iceSprite(), carX(h.lane, h.D, dist), y);
+    } else if (h.kind === 'pothole') {
+      const y = screenY(h.D, dist);
+      if (y < -40 || y > H + 40) continue;
+      blit(potholeSprite(), carX(h.lane, h.D, dist), y);
+    } else if (h.kind === 'cones') {
+      const wy = screenY(h.warnD, dist);
+      if (wy > -40 && wy < H + 40) {
+        const wx = carX(h.lane, h.warnD, dist);
+        blit(signSprite('works'), wx - 16, wy);
+        ctx.fillStyle = Math.floor(t * 7) % 2 ? '#ff9f1c' : '#ffe066';
+        circle(ctx, wx + 12, wy, 5); ctx.fill();
+      }
+      const cSpr = coneSprite();
+      for (const cn of h.cones) {
+        if (cn.smashed) continue;
+        const cy = screenY(cn.D, dist);
+        if (cy < -30 || cy > H + 30) continue;
+        blit(cSpr, carX(h.lane, cn.D, dist), cy);
+      }
+    }
+  }
   for (const c of coins) {
     const x = carX(c.lane, c.D, dist), y = screenY(c.D, dist);
     if (y < -20 || y > H + 20) continue;
@@ -1103,14 +1565,41 @@ function drawObjects() {
   }
   for (const c of traffic) {
     const y = screenY(c.D, dist);
-    if (y < -70 || y > H + 70) continue;
-    blit(c.spr, carX(c.lane, c.D, dist), y);
+    if (y >= -70 && y <= H + 70) {
+      const x = carX(c.lane, c.D, dist);
+      blit(c.spr, x, y, c.oncoming ? Math.PI : (c.rot || 0));
+      if (c.shiftDir && c.triggered && c.blinkT > 0 && Math.floor(t * 10) % 2) {
+        const bx = x + c.shiftDir * (c.w / 2 + 1);
+        ctx.fillStyle = '#ff9f1c';
+        circle(ctx, bx, y - c.h / 2 + 5, 4); ctx.fill();
+        circle(ctx, bx, y + c.h / 2 - 5, 4); ctx.fill();
+        text(c.shiftDir > 0 ? '→' : '←', bx + c.shiftDir * 11, y, 12, '#ffd60a');
+      }
+    } else if (c.oncoming && y < -20 && y > -480 && (state === 'play' || state === 'paused')) {
+      const ax = carX(c.lane, dist + PLAYER_Y, dist);
+      const pulse = 0.65 + Math.sin(t * 14) * 0.35;
+      ctx.save(); ctx.globalAlpha = pulse;
+      ctx.fillStyle = 'rgba(255, 59, 48, .88)';
+      rr(ax - 20, 52, 40, 22, 11); ctx.fill();
+      ctx.strokeStyle = '#ffd60a'; ctx.lineWidth = 1.6; ctx.stroke();
+      text('⚠ ↓', ax, 63, 12, '#ffffff');
+      ctx.restore();
+    }
   }
 }
 
 function drawPlayer() {
   if (invuln > 0 && nitro <= 0 && Math.floor(t * 14) % 2) return;
   const car = CARS[save.car] || CARS[0];
+  if (iceT > 0) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(186, 242, 255, 0.72)'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(px - 10, PLAYER_Y + 18); ctx.lineTo(px - 10 - vxIce * 0.04, PLAYER_Y + 42);
+    ctx.moveTo(px + 10, PLAYER_Y + 18); ctx.lineTo(px + 10 - vxIce * 0.04, PLAYER_Y + 42);
+    ctx.stroke();
+    ctx.restore();
+  }
   if (nitro > 0) {
     const fl = 16 + Math.random() * 14;
     const g = ctx.createLinearGradient(0, PLAYER_Y + 22, 0, PLAYER_Y + 22 + fl);
@@ -1121,7 +1610,7 @@ function drawPlayer() {
     blit(glowSprite('#4cc9f0'), px, PLAYER_Y, 0, 1.4);
     ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
   }
-  blit(vehicleSprite(car.style, car.body, car.stripe), px, PLAYER_Y, clamp((tx - px) * 0.012, -0.25, 0.25));
+  blit(vehicleSprite(car.style, car.body, car.stripe), px, PLAYER_Y, clamp((tx - px) * 0.012 + vxIce * 0.0005, -0.28, 0.28));
 }
 
 function drawParts() {
@@ -1151,11 +1640,12 @@ function drawSnow(a) {
   ctx.globalAlpha = 1;
 }
 
-function cone(g, x, y, len, w0, w1, a) {
-  const gr = g.createLinearGradient(0, y, 0, y - len);
+function cone(g, x, y, len, w0, w1, a, dir = -1) {
+  const y1 = y + dir * len;
+  const gr = g.createLinearGradient(0, y, 0, y1);
   gr.addColorStop(0, 'rgba(0,0,0,' + a + ')'); gr.addColorStop(1, 'rgba(0,0,0,0)');
   g.fillStyle = gr;
-  g.beginPath(); g.moveTo(x - w0, y); g.lineTo(x + w0, y); g.lineTo(x + w1, y - len); g.lineTo(x - w1, y - len); g.closePath(); g.fill();
+  g.beginPath(); g.moveTo(x - w0, y); g.lineTo(x + w0, y); g.lineTo(x + w1, y1); g.lineTo(x - w1, y1); g.closePath(); g.fill();
 }
 function drawNight(a, game) {
   if (a <= 0.01) return;
@@ -1174,8 +1664,9 @@ function drawNight(a, game) {
     cone(lg, px, PLAYER_Y - PH / 2 + 2, 190, 11, 55, 0.95);
     for (const c of traffic) {
       const y = screenY(c.D, dist);
-      if (y < -80 || y > H + 200) continue;
-      cone(lg, carX(c.lane, c.D, dist), y - c.h / 2 + 2, 120, 9, 38, 0.7);
+      if (y < -120 || y > H + 200) continue;
+      if (c.oncoming) cone(lg, carX(c.lane, c.D, dist), y + c.h / 2 - 2, 145, 9, 44, 0.85, 1);
+      else cone(lg, carX(c.lane, c.D, dist), y - c.h / 2 + 2, 120, 9, 38, 0.7);
     }
   }
   ctx.drawImage(lightC, 0, 0, W, H);
@@ -1186,8 +1677,13 @@ function drawNight(a, game) {
     for (const c of traffic) {
       const x = carX(c.lane, c.D, dist), y = screenY(c.D, dist);
       if (y < -60 || y > H + 60) continue;
-      ctx.globalAlpha = a * 0.75;
-      blit(red, x - c.w / 2 + 5, y + c.h / 2 - 2, 0, 0.35); blit(red, x + c.w / 2 - 5, y + c.h / 2 - 2, 0, 0.35);
+      if (c.oncoming) {
+        ctx.globalAlpha = a * 0.95;
+        blit(white, x - c.w / 2 + 5, y + c.h / 2 - 2, 0, 0.42); blit(white, x + c.w / 2 - 5, y + c.h / 2 - 2, 0, 0.42);
+      } else {
+        ctx.globalAlpha = a * 0.75;
+        blit(red, x - c.w / 2 + 5, y + c.h / 2 - 2, 0, 0.35); blit(red, x + c.w / 2 - 5, y + c.h / 2 - 2, 0, 0.35);
+      }
       if (c.type === 'police') { ctx.globalAlpha = a; blit(Math.floor(t * 6) % 2 ? red : blue, x, y, 0, 0.9); }
     }
     ctx.globalAlpha = a * 0.9;
@@ -1253,7 +1749,7 @@ function drawSpeedometer() {
   const kmh = Math.round(speed * SPEED_FACTOR);
   const maxKmh = 200;
   const frac = clamp(kmh / maxKmh, 0, 1);
-  const cx = W - 46, cy = H - 44, R = 31;
+  const cx = W - 46, cy = H - 45, R = 33;
   const isTurbo = nitro > 0;
   ctx.fillStyle = 'rgba(10,16,30,.68)';
   circle(ctx, cx, cy, R + 3); ctx.fill();
@@ -1289,15 +1785,15 @@ function drawSpeedometer() {
   ctx.stroke(); ctx.lineCap = 'butt';
   ctx.fillStyle = '#fff'; circle(ctx, cx, cy, 3.2); ctx.fill();
 
-  text(String(kmh), cx, cy + 10, 16, isTurbo ? '#00f5d4' : '#ffffff');
-  text('קמ"ש', cx, cy + 22, 9, '#a8c0d6');
+  text(String(kmh), cx, cy + 9, 16, isTurbo ? '#00f5d4' : '#ffffff');
+  text('קמ"ש', cx, cy + 22, 11, '#a8c0d6');
 }
 
 function drawJourneyProgress() {
   const finishD = activeStage.length * 50;
   const prog = clamp(dist / finishD, 0, 1);
-  pill(104, 10, 158, 34);
-  const x0 = 117, x1 = 232, ty = 20;
+  pill(104, 10, 162, 38);
+  const x0 = 117, x1 = 236, ty = 19;
   ctx.lineCap = 'round'; ctx.lineWidth = 5;
   ctx.strokeStyle = 'rgba(255,255,255,.18)';
   ctx.beginPath(); ctx.moveTo(x0, ty); ctx.lineTo(x1, ty); ctx.stroke();
@@ -1306,12 +1802,12 @@ function drawJourneyProgress() {
     ctx.beginPath(); ctx.moveTo(x0, ty); ctx.lineTo(x0 + prog * (x1 - x0), ty); ctx.stroke();
   }
   ctx.lineCap = 'butt';
-  drawFlag(245, ty, 8.5);
+  drawFlag(249, ty, 8.5);
   const dx = x0 + prog * (x1 - x0);
   ctx.fillStyle = '#ffffff'; circle(ctx, dx, ty, 5); ctx.fill();
   ctx.fillStyle = '#ffd60a'; circle(ctx, dx, ty, 3); ctx.fill();
   const curM = Math.min(activeStage.length, Math.floor(dist / 50));
-  text(curM + ' / ' + activeStage.length + ' מ׳', 183, 35, 10, '#d7e5f5');
+  text(curM + ' / ' + activeStage.length + ' מ׳', 185, 36, 12, '#d7e5f5');
 }
 
 function drawHud() {
@@ -1458,8 +1954,8 @@ function drawMap() {
 
     const w14 = worldStars14(w);
     if (worldOpen && !isStageUnlocked(w, 4) && w14 < BOSS_REQ_STARS) {
-      ctx.fillStyle = 'rgba(0,0,0,.45)'; rr(x0 + 86, y0 + 8, 114, 20, 10); ctx.fill();
-      text('צריך 8 כוכבים', x0 + 143, y0 + 18, 11, '#ffd60a');
+      ctx.fillStyle = 'rgba(0,0,0,.45)'; rr(x0 + 82, y0 + 7, 122, 21, 10); ctx.fill();
+      text('צריך 8 כוכבים', x0 + 143, y0 + 18, 12, '#ffd60a');
     }
 
     // 5 stage tiles (right-to-left: stage 1 on right, boss 5 on left)
@@ -1492,7 +1988,7 @@ function drawMap() {
       if (!open) {
         drawLock(cx, cy - (isBoss && worldOpen ? 10 : 4), 8.5, isBoss ? '#ffd60a' : '#7f91ab');
         if (isBoss && worldOpen && w14 < BOSS_REQ_STARS) {
-          text(w14 + '/8', cx, cy + 12, 11, '#ffd60a');
+          text(w14 + '/8', cx, cy + 12, 12, '#ffd60a');
         }
       } else {
         if (isBoss) drawCrown(cx, cy - 10, 9.5, '#ffd60a', '#6b3800');
@@ -1845,7 +2341,14 @@ window.__g = {
     }
     else if (s === 'menu' || s === 'garage') { activeStage = null; }
   },
-  warp(m) { dist = m * 50; demoDist = dist; nextRow = dist + 400; nextCoin = dist + 500; nextBolt = dist + 600; traffic = []; coins = []; bolts = []; lastBiome = biomeAt(dist); nextMilestone = Math.ceil(m / 250) * 250 + 250; },
+  warp(m) {
+    dist = m * 50; demoDist = dist;
+    nextRow = dist + 400; nextCoin = dist + 500; nextBolt = dist + 600;
+    nextHazard = dist + 500; nextNarrow = dist + 900; nextOncoming = dist + 700;
+    traffic = []; coins = []; bolts = []; hazards = []; narrows = [];
+    iceT = 0; vxIce = 0;
+    lastBiome = biomeAt(dist); nextMilestone = Math.ceil(m / 250) * 250 + 250;
+  },
   stage(w, s) {
     const wi = clamp(w | 0, 0, 3), si = clamp(s | 0, 0, 4);
     startStage(wi * 5 + si);
@@ -1856,6 +2359,56 @@ window.__g = {
     dist = activeStage.length * 50 + 2;
     finishStage();
     return true;
+  },
+  mech() { return activeMechs(); },
+  spawn(kind) {
+    const norm = kind === 'pothole' ? 'potholes'
+      : kind === 'cone' ? 'cones'
+      : kind === 'sharpCurve' ? 'sharpCurves'
+      : kind;
+    if (!norm) return false;
+    if (!forcedMechs.includes(norm)) forcedMechs.push(norm);
+    if (norm === 'sharpCurves') {
+      forcedSharpD = dist;
+      return true;
+    }
+    if (norm === 'narrow') {
+      const D = dist + 440;
+      const side = hasMech('oncoming') ? 1 : (Math.random() < 0.5 ? -1 : 1);
+      const closed = side < 0 ? 0 : 3;
+      narrows.push({ D0: D, D1: D + 900, side });
+      traffic = traffic.filter(c => !(Math.round(c.lane) === closed && c.D >= D - 200 && c.D <= D + 1100));
+      coins = coins.filter(c => !(c.lane === closed && c.D >= D - 160 && c.D <= D + 1060));
+      prevFree = usableLanesAt(D, 200);
+      return true;
+    }
+    if (norm === 'laneChange') {
+      const D = dist + 460;
+      const lane = hasMech('oncoming') ? 2 : 1;
+      const shiftDir = lane <= (hasMech('oncoming') ? 1 : 0) ? 1 : -1;
+      const color = TRAFFIC_COLORS[0];
+      traffic.push({
+        lane, D, type: 'sedan', w: PW, h: PH, color,
+        spr: vehicleSprite('sedan', color, null), rot: 0,
+        shiftDir, fromLane: lane, targetLane: lane + shiftDir,
+        blinkT: 0.85, moveT: 0, triggered: true
+      });
+      return true;
+    }
+    if (norm === 'oncoming') {
+      const D = dist + 460;
+      if (!spawnOncoming(D)) {
+        const color = TRAFFIC_COLORS[1];
+        traffic.push({ lane: 0, D, type: 'sedan', w: PW, h: PH, color, spr: vehicleSprite('sedan', color, null), oncoming: true, rot: 0 });
+      }
+      return true;
+    }
+    if (norm === 'sand' || norm === 'ice' || norm === 'cones' || norm === 'potholes') {
+      const D = dist + 400;
+      spawnHazard(norm === 'potholes' ? 'pothole' : norm, D, hasMech('oncoming') ? 2 : 1);
+      return true;
+    }
+    return false;
   },
   unlockAll() { unlockedAll = true; },
   get save() { return save; },

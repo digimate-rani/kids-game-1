@@ -67,6 +67,12 @@ stage, simulation of a rival race to check it is winnable but not trivial.
 - Shows km/h derived from the internal `speed` (game units per second) with a fixed factor so normal driving reads
   roughly 60-140 km/h and turbo visibly jumps higher. Animated needle or bar plus the number; turbo colours it.
 
+## 6. Additions by Rani (2026-11-14, after phase A)
+- Goal feedback during the run: when a goal is reached mid stage, a clear on-screen notice ("יעד הושלם!" + star +
+  sound), and a small live goal tracker on the HUD (e.g. coins 7/12, smashes 1/2, no-crash still alive / lost).
+- Boss reward cars: beating each of the 4 bosses for the first time gives a new car for free (4 new cars, one per
+  world, themed to the world), with a "new car" celebration screen. The 3 premium cars stay coin purchases.
+
 ## Approved answers (2026-11-14)
 1. Boss needs 8 of 12 stars. 2. Rival contact never costs a heart. 3. Existing 6 cars stay cosmetic; only the 3 new
 premium cars have abilities. 4. 20 stages. 5. Rival names approved.

@@ -50,6 +50,10 @@ section 3. Target file: `classic/index.html` (one file, canvas 2D, Hebrew RTL, n
 - Hooks: `__g.mech()` lists active mechanics; `__g.spawn(kind)` places one ahead of the player.
 - Done when: each mechanic visible and fair on screenshots, no impossible rows (always a way through).
 
+## Phase B2 - Goal feedback (right after B)
+- Spec section 6 first bullet: mid-run "יעד הושלם!" notice with star + sound, live goal tracker on the HUD, a goal
+  that is lost (no-crash after a crash) shown as failed. Works for every goal kind including `lead` later.
+
 ## Phase C - Rival
 - Per spec section 2: own D and lane, lookahead lane choice (traffic free + coins), reaction delay, mistakes, mild
   rubber band +-6%, steals coins (popup "גנב לך מטבע!"), uses turbo, contact = both bounce no heart loss, player
@@ -57,6 +61,8 @@ section 3. Target file: `classic/index.html` (one file, canvas 2D, Hebrew RTL, n
 - Characters: בני הבזק, סופה, קרחון, צל (simple drawn face icon + colour each), taunt line at start / end.
   Boss = same character, stronger factor, hardest road of its world.
 - Stage types now real: `race` first to the line, `duel` more coins at the line, `boss` race.
+- Boss reward cars (spec section 6): first win over each boss unlocks a free world-themed car + celebration
+  screen; the car appears in the garage as owned.
 - Hooks: `__g.rival` (D, lane, coins, state); `__g.simRace(sec)` runs the race headless with the player driven by
   a simple bot and returns `{playerD, rivalD, playerCoins, rivalCoins}` so balance can be measured.
 - Done when: rival races look natural on screenshots, a decent bot beats world 1 rivals but not trivially, boss is
