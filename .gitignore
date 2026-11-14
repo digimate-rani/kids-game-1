@@ -1,2 +1,5 @@
 # Session summaries can hold personal context - never in git
 session-handoffs/
+
+# Claude + Gemini bridge threads (working copies, messages)
+agent-bridge/

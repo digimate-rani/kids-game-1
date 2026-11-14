@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Road Race v2 - אפיון</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1729;--card:#18233d;--line:#2a3a5e;--txt:#eef3ff;--mut:#9fb3c8;--y:#ffd60a;--r:#ff4d6d;--b:#4cc9f0;--g:#7ddc6a;--o:#ff9f1c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:Rubik,Arial,sans-serif;line-height:1.6;font-size:17px}
+.wrap{max-width:980px;margin:0 auto;padding:28px 16px 60px}
+h1{font-size:34px;margin:0 0 4px;font-weight:800}
+h1 span{color:var(--y)}
+.sub{color:var(--mut);margin:0 0 28px}
+h2{font-size:24px;margin:40px 0 14px;display:flex;align-items:center;gap:10px}
+h2 .n{background:var(--y);color:#111;border-radius:50%;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;font-size:18px;flex:none}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.grid .card{margin:0}
+.card h3{margin:0 0 6px;font-size:18px}
+.card p{margin:0;color:var(--mut)}
+.problem{border-right:5px solid var(--r)}
+.tag{display:inline-block;font-size:13px;padding:2px 10px;border-radius:99px;background:#24345a;color:var(--b);margin-bottom:6px}
+.world{border-top:5px solid}
+.w1{border-top-color:var(--g)}.w2{border-top-color:var(--o)}.w3{border-top-color:#bfe6ff}.w4{border-top-color:#8f7cff}
+.stages{display:flex;gap:5px;margin:10px 0 6px;flex-wrap:nowrap}
+.st{width:32px;height:32px;border-radius:10px;background:#24345a;display:flex;align-items:center;justify-content:center;font-weight:700}
+.st.boss{background:var(--r);color:#fff}
+.stars{color:var(--y);letter-spacing:2px}
+ul{margin:6px 0;padding-inline-start:22px}
+li{margin:4px 0}
+.road{display:flex;justify-content:center;margin:8px 0}
+.price{color:var(--y);font-weight:700}
+.steps{counter-reset:s;list-style:none;padding:0}
+.steps li{counter-increment:s;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px 12px 16px;margin:8px 0;position:relative;padding-inline-start:54px}
+.steps li::before{content:counter(s);position:absolute;inset-inline-start:14px;top:12px;background:var(--b);color:#111;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700}
+.decide{background:#2a1f0a;border:2px solid var(--y);border-radius:16px;padding:18px 20px}
+.decide h2{margin-top:0}
+.decide li{margin:10px 0}
+.decide b{color:var(--y)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Road Race <span>v2</span></h1>
+<p class="sub">אפיון שכבות האתגר למשחק הדו-ממדי · מאושר 14.11.2026 · 14.11.2026</p>
+
+<div class="card problem">
+<h3>הבעיה</h3>
+<p>המשחק היום הוא ריצה אינסופית: נוסעים עד שנגמרים 3 הלבבות, והיעד היחיד הוא לשבור את השיא. כל 6 המכוניות עולות ביחד 590 מטבעות והן רק נראות שונה. אחרי מכונית הזהב אין יותר מה לרדוף אחריו.</p>
+</div>
+
+<h2><span class="n">1</span>מסע: 4 עולמות, 20 שלבים</h2>
+<p>במסך הראשי יהיו שלושה כפתורים: <b>מסע</b> (הכפתור הגדול), <b>נסיעה חופשית</b> (המשחק של היום, נשאר כמו שהוא) ו<b>מוסך</b>. לכל שלב יש קו סיום ושלושה יעדים, וכל יעד שמושג נותן כוכב.</p>
+<div class="grid">
+ <div class="card world w1"><h3>אחו ירוק</h3><div class="stages"><div class="st">1</div><div class="st">2</div><div class="st">3</div><div class="st">4</div><div class="st boss">👑</div></div><p>מתחרה: בני הבזק</p></div>
+ <div class="card world w2"><h3>מדבר</h3><div class="stages"><div class="st">1</div><div class="st">2</div><div class="st">3</div><div class="st">4</div><div class="st boss">👑</div></div><p>מתחרה: סופה</p></div>
+ <div class="card world w3"><h3>ארץ השלג</h3><div class="stages"><div class="st">1</div><div class="st">2</div><div class="st">3</div><div class="st">4</div><div class="st boss">👑</div></div><p>מתחרה: קרחון</p></div>
+ <div class="card world w4"><h3>לילה</h3><div class="stages"><div class="st">1</div><div class="st">2</div><div class="st">3</div><div class="st">4</div><div class="st boss">👑</div></div><p>מתחרה: צל</p></div>
+</div>
+<div class="grid" style="margin-top:12px">
+ <div class="card"><span class="tag">סוגי שלבים</span><ul><li>הגעה לקו סיום</li><li>מרוץ נגד המתחרה</li><li>דו-קרב מטבעות: מי אוסף יותר עד הקו</li><li>בוס: המתחרה בעוצמה מלאה, על הכביש הכי קשה בעולם</li></ul></div>
+ <div class="card"><span class="tag">כוכבים</span><p><span class="stars">★</span> סיים או ניצח<br><span class="stars">★★</span> יעד נוסף, למשל 40 מטבעות<br><span class="stars">★★★</span> יעד קשה, למשל בלי אף תאונה</p></div>
+ <div class="card"><span class="tag">פתיחת שלבים</span><p>כוכב אחד פותח את השלב הבא. לבוס צריך 8 מתוך 12 הכוכבים של שלבים 1-4, ככה שצריך לחזור לשלבים ולשפר. ניצחון על הבוס פותח את העולם הבא.</p></div>
+</div>
+
+<h2><span class="n">2</span>המתחרה הממוחשב (הוגן)</h2>
+<div class="road">
+<svg viewBox="0 0 300 220" width="300" height="220" aria-label="סקיצה של המסך">
+ <rect width="300" height="220" rx="14" fill="#3b8f3a"/>
+ <rect x="70" y="0" width="160" height="220" fill="#555b66"/>
+ <g stroke="#fff" stroke-width="3" stroke-dasharray="14 12" opacity=".7"><line x1="110" y1="0" x2="110" y2="220"/><line x1="150" y1="0" x2="150" y2="220"/><line x1="190" y1="0" x2="190" y2="220"/></g>
+ <rect x="60" y="8" width="180" height="10" rx="5" fill="#0f1729" opacity=".85"/>
+ <circle cx="140" cy="13" r="6" fill="#ffd60a"/><circle cx="168" cy="13" r="6" fill="#ff4d6d"/><text x="232" y="17" font-size="12">🏁</text>
+ <rect x="157" y="50" width="22" height="38" rx="6" fill="#ff4d6d"/><text x="183" y="72" font-size="11" fill="#fff" font-family="Rubik">בני</text>
+ <circle cx="130" cy="95" r="6" fill="#ffd60a"/><circle cx="130" cy="115" r="6" fill="#ffd60a"/>
+ <rect x="119" y="160" width="22" height="38" rx="6" fill="#ffd60a"/>
+</svg>
+</div>
+<div class="grid">
+ <div class="card"><h3>איך הוא נוהג</h3><p>באותה מהירות בערך כמו השחקן. מסתכל קדימה, בוחר נתיב פנוי עם מטבעות, ולפעמים טועה ונתקע בתנועה. הוא מאט כשהוא רחוק מדי קדימה ומאיץ כשהוא רחוק מאחור, כדי שהמרוץ יישאר צמוד ואפשר יהיה לנצח.</p></div>
+ <div class="card"><h3>גונב מטבעות</h3><p>מטבע שהוא עובר עליו נעלם ומופיעה ההודעה "גנב לך מטבע!". הוא גם אוסף טורבו.</p></div>
+ <div class="card"><h3>מגע</h3><p>כשנוגעים בו, שני הרכבים נהדפים הצידה ואף אחד לא מאבד לב. עם טורבו אפשר להעיף אותו לסחרור.</p></div>
+ <div class="card"><h3>איפה רואים אותו</h3><p>כשהוא בטווח המסך, הוא נוסע על הכביש. כשהוא מחוץ למסך מופיע חץ עם המרחק. למעלה יש פס עם הדגל, הנקודה שלך והנקודה שלו.</p></div>
+</div>
+
+<h2><span class="n">3</span>כביש קשה יותר: מכשול חדש בכל עולם</h2>
+<p>כל מכשול חדש מופיע לבד בשלב הראשון של העולם, ואחר כך משתלב עם מה שכבר הכרת. גם המהירות וצפיפות התנועה עולות משלב לשלב.</p>
+<div class="grid">
+ <div class="card world w1"><h3>אחו</h3><p>מכוניות שמחליפות נתיב. הן מהבהבות לפני שהן זזות, כך שיש אזהרה הוגנת.</p></div>
+ <div class="card world w2"><h3>מדבר</h3><p>הכביש מצטמצם ל-3 נתיבים, יש כתמי חול שמאטים ועבודות בכביש עם קונוסים.</p></div>
+ <div class="card world w3"><h3>שלג</h3><p>קרח שמחליק, כלומר ההגה מגיב באיחור, ופניות חדות יותר.</p></div>
+ <div class="card world w4"><h3>לילה</h3><p>נתיב נגדי עם מכוניות שבאות מולך, ובורות בכביש.</p></div>
+</div>
+
+<h2><span class="n">4</span>סיבה לאסוף מטבעות</h2>
+<p>המוסך יקבל שתי לשוניות: מכוניות ושדרוגים. גם המטבעות שכבר נצברו נשארים. בכל שלב מקבלים בונוס מטבעות על כוכב שהושג בפעם הראשונה.</p>
+<div class="grid">
+ <div class="card"><h3>❤️ לב נוסף</h3><p>4 לבבות <span class="price">300</span> · 5 לבבות <span class="price">800</span></p></div>
+ <div class="card"><h3>⚡ טורבו ארוך</h3><p>3 רמות, מ-3.2 עד 5.6 שניות · <span class="price">100 / 200 / 400</span></p></div>
+ <div class="card"><h3>🧲 מגנט</h3><p>פריט חדש על הכביש שמושך מטבעות · פתיחה <span class="price">150</span>, הארכה <span class="price">150 / 300</span></p></div>
+ <div class="card"><h3>🛡️ מגן</h3><p>פריט חדש שסופג פגיעה אחת · פתיחה <span class="price">250</span>, מופיע יותר <span class="price">400</span></p></div>
+</div>
+<div class="card"><h3>מכוניות פרימיום עם יכולת</h3><p>ברק <span class="price">600</span> מהירה ב-10% · מגנטית <span class="price">900</span> עם מגנט קטן מובנה · טנק <span class="price">1200</span> שהפגיעה הראשונה בכל שלב לא נחשבת אצלו</p></div>
+
+<h2><span class="n">5</span>סדר הבנייה</h2>
+<p>אחרי כל שלב בנייה המשחק עולה לאוויר, כך שאפשר לשחק מיד.</p>
+<ol class="steps">
+ <li><b>מסע:</b> מפה, שלבים, קו סיום, יעדים, כוכבים, פתיחת שלבים</li>
+ <li><b>כביש קשה:</b> המכשולים של כל עולם</li>
+ <li><b>מתחרה:</b> הנהיגה שלו, גניבת מטבעות, מגע, תצוגה, דמויות ובוסים</li>
+ <li><b>שדרוגים:</b> פריטים חדשים, מכוניות פרימיום וכיוון מחירים</li>
+</ol>
+
+<div class="decide">
+<h2>ההחלטות (אושרו 14.11)</h2>
+<ol>
+ <li><b>בוס:</b> נפתח ב-8 מתוך 12 כוכבים.</li>
+ <li><b>מגע עם המתחרה:</b> לא עולה לב.</li>
+ <li><b>6 המכוניות הקיימות:</b> נשארות רק מראה. רק מכוניות הפרימיום מקבלות יכולת.</li>
+ <li><b>20 שלבים</b> בגרסה הראשונה.</li>
+ <li><b>שמות המתחרים:</b> בני הבזק, סופה, קרחון, צל.</li>
+ <li><b>תוספת:</b> מד מהירות על הצג, בכל המצבים.</li>
+</ol>
+</div>
+</div>
+</body>
+</html>

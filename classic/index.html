@@ -51,6 +51,61 @@ const BIOMES = [
   { kind: 'night',  ground: '#3f8040', band: 'rgba(0,0,0,.05)' },
 ];
 
+const SPEED_FACTOR = 0.24; // km/h = speed * SPEED_FACTOR (normal ~60-140, turbo higher)
+const WORLDS = [
+  { id: 0, name: 'אחו ירוק', c1: '#3fa34d', c2: '#1f5e2a', accent: '#7CFC00', rival: 'בני הבזק' },
+  { id: 1, name: 'מדבר',     c1: '#d99b43', c2: '#855210', accent: '#ffd60a', rival: 'סופה' },
+  { id: 2, name: 'ארץ השלג', c1: '#4ea3d1', c2: '#1f5482', accent: '#90e0ef', rival: 'קרחון' },
+  { id: 3, name: 'לילה',     c1: '#434d94', c2: '#1a1f47', accent: '#c77dff', rival: 'צל' },
+];
+const BOSS_REQ_STARS = 8;
+const STAGES = [
+  // World 0 - Meadow
+  { id: 0,  world: 0, s: 0, name: 'צעד ראשון',     type: 'finish', length: 220, speedFactor: 0.92, traffic: 0.80, mech: ['laneChange'], rivalFactor: 0.92, starCoins: [15, 25, 40],
+    goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'coins', n: 6, label: 'אסוף 6 מטבעות' }, { kind: 'nocrash', n: 0, label: 'סיים בלי התנגשות' }] },
+  { id: 1,  world: 0, s: 1, name: 'מירוץ בכפר',    type: 'race',   length: 260, speedFactor: 0.98, traffic: 0.90, mech: ['laneChange'], rivalFactor: 0.95, starCoins: [20, 30, 45],
+    goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'coins', n: 8, label: 'אסוף 8 מטבעות' }, { kind: 'time', n: 48, label: 'סיים תוך 48 שניות' }] },
+  { id: 2,  world: 0, s: 2, name: 'מרדף מטבעות',   type: 'duel',   length: 280, speedFactor: 1.02, traffic: 0.95, mech: ['laneChange'], rivalFactor: 0.97, starCoins: [20, 35, 50],
+    goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'coins', n: 12, label: 'אסוף 12 מטבעות' }, { kind: 'smash', n: 1, label: 'מעך רכב בטורבו' }] },
+  { id: 3,  world: 0, s: 3, name: 'שדרת העצים',    type: 'race',   length: 320, speedFactor: 1.06, traffic: 1.05, mech: ['laneChange'], rivalFactor: 0.99, starCoins: [25, 40, 55],
+    goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'nocrash', n: 0, label: 'סיים בלי התנגשות' }, { kind: 'time', n: 52, label: 'סיים תוך 52 שניות' }] },
+  { id: 4,  world: 0, s: 4, name: 'בוס האחו',      type: 'boss',   length: 380, speedFactor: 1.12, traffic: 1.12, mech: ['laneChange'], rivalFactor: 1.02, starCoins: [40, 60, 90],
+    goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'coins', n: 14, label: 'אסוף 14 מטבעות' }, { kind: 'nocrash', n: 0, label: 'סיים בלי התנגשות' }] },
+  // World 1 - Desert
+  { id: 5,  world: 1, s: 0, name: 'כביש החולות',   type: 'finish', length: 300, speedFactor: 1.08, traffic: 1.00, mech: ['narrow', 'sand'], rivalFactor: 0.96, starCoins: [25, 40, 60],
+    goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'coins', n: 10, label: 'אסוף 10 מטבעות' }, { kind: 'nocrash', n: 0, label: 'סיים בלי התנגשות' }] },
+  { id: 6,  world: 1, s: 1, name: 'סופת אבק',      type: 'race',   length: 340, speedFactor: 1.12, traffic: 1.08, mech: ['narrow', 'sand', 'cones'], rivalFactor: 0.98, starCoins: [25, 45, 65],
+    goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'time', n: 52, label: 'סיים תוך 52 שניות' }, { kind: 'smash', n: 2, label: 'מעך 2 רכבים בטורבו' }] },
+  { id: 7,  world: 1, s: 2, name: 'קניון הזהב',    type: 'duel',   length: 360, speedFactor: 1.15, traffic: 1.12, mech: ['sand', 'cones'], rivalFactor: 1.00, starCoins: [30, 50, 70],
+    goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'coins', n: 15, label: 'אסוף 15 מטבעות' }, { kind: 'nocrash', n: 0, label: 'סיים בלי התנגשות' }] },
+  { id: 8,  world: 1, s: 3, name: 'עבודות בכביש',  type: 'race',   length: 400, speedFactor: 1.18, traffic: 1.18, mech: ['narrow', 'sand', 'cones', 'laneChange'], rivalFactor: 1.02, starCoins: [35, 55, 75],
+    goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'time', n: 57, label: 'סיים תוך 57 שניות' }, { kind: 'coins', n: 14, label: 'אסוף 14 מטבעות' }] },
+  { id: 9,  world: 1, s: 4, name: 'בוס המדבר',     type: 'boss',   length: 460, speedFactor: 1.24, traffic: 1.24, mech: ['narrow', 'sand', 'cones', 'laneChange'], rivalFactor: 1.04, starCoins: [55, 80, 120],
+    goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'coins', n: 18, label: 'אסוף 18 מטבעות' }, { kind: 'nocrash', n: 0, label: 'סיים בלי התנגשות' }] },
+  // World 2 - Snow
+  { id: 10, world: 2, s: 0, name: 'כפור ראשון',    type: 'finish', length: 380, speedFactor: 1.18, traffic: 1.12, mech: ['ice'], rivalFactor: 0.99, starCoins: [35, 55, 80],
+    goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'coins', n: 12, label: 'אסוף 12 מטבעות' }, { kind: 'nocrash', n: 0, label: 'סיים בלי התנגשות' }] },
+  { id: 11, world: 2, s: 1, name: 'סיבוב חלקלק',   type: 'race',   length: 420, speedFactor: 1.22, traffic: 1.20, mech: ['ice', 'sharpCurves'], rivalFactor: 1.01, starCoins: [40, 60, 85],
+    goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'time', n: 58, label: 'סיים תוך 58 שניות' }, { kind: 'smash', n: 2, label: 'מעך 2 רכבים בטורבו' }] },
+  { id: 12, world: 2, s: 2, name: 'מרדף הקרח',     type: 'duel',   length: 440, speedFactor: 1.25, traffic: 1.24, mech: ['ice', 'sharpCurves', 'laneChange'], rivalFactor: 1.02, starCoins: [45, 65, 90],
+    goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'coins', n: 18, label: 'אסוף 18 מטבעות' }, { kind: 'nocrash', n: 0, label: 'סיים בלי התנגשות' }] },
+  { id: 13, world: 2, s: 3, name: 'פסגת השלג',    type: 'race',   length: 480, speedFactor: 1.28, traffic: 1.28, mech: ['ice', 'sharpCurves', 'narrow'], rivalFactor: 1.04, starCoins: [50, 75, 100],
+    goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'time', n: 62, label: 'סיים תוך 62 שניות' }, { kind: 'smash', n: 3, label: 'מעך 3 רכבים בטורבו' }] },
+  { id: 14, world: 2, s: 4, name: 'בוס הקרח',      type: 'boss',   length: 540, speedFactor: 1.34, traffic: 1.34, mech: ['ice', 'sharpCurves', 'laneChange', 'cones'], rivalFactor: 1.06, starCoins: [70, 105, 150],
+    goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'coins', n: 20, label: 'אסוף 20 מטבעות' }, { kind: 'nocrash', n: 0, label: 'סיים בלי התנגשות' }] },
+  // World 3 - Night
+  { id: 15, world: 3, s: 0, name: 'אורות בחושך',   type: 'finish', length: 440, speedFactor: 1.28, traffic: 1.22, mech: ['oncoming', 'potholes'], rivalFactor: 1.01, starCoins: [50, 75, 105],
+    goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'coins', n: 14, label: 'אסוף 14 מטבעות' }, { kind: 'nocrash', n: 0, label: 'סיים בלי התנגשות' }] },
+  { id: 16, world: 3, s: 1, name: 'נתיב נגדי',     type: 'race',   length: 480, speedFactor: 1.32, traffic: 1.28, mech: ['oncoming', 'potholes', 'laneChange'], rivalFactor: 1.03, starCoins: [55, 85, 115],
+    goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'time', n: 60, label: 'סיים תוך 60 שניות' }, { kind: 'smash', n: 3, label: 'מעך 3 רכבים בטורבו' }] },
+  { id: 17, world: 3, s: 2, name: 'מרדף החצות',    type: 'duel',   length: 500, speedFactor: 1.36, traffic: 1.32, mech: ['oncoming', 'potholes', 'cones'], rivalFactor: 1.04, starCoins: [60, 90, 125],
+    goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'coins', n: 22, label: 'אסוף 22 מטבעות' }, { kind: 'nocrash', n: 0, label: 'סיים בלי התנגשות' }] },
+  { id: 18, world: 3, s: 3, name: 'ליל סערה',      type: 'race',   length: 550, speedFactor: 1.40, traffic: 1.36, mech: ['oncoming', 'potholes', 'ice', 'narrow'], rivalFactor: 1.06, starCoins: [65, 95, 135],
+    goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'time', n: 65, label: 'סיים תוך 65 שניות' }, { kind: 'smash', n: 3, label: 'מעך 3 רכבים בטורבו' }] },
+  { id: 19, world: 3, s: 4, name: 'בוס הצללים',    type: 'boss',   length: 620, speedFactor: 1.46, traffic: 1.42, mech: ['oncoming', 'potholes', 'laneChange', 'sharpCurves'], rivalFactor: 1.08, starCoins: [90, 140, 200],
+    goals: [{ kind: 'finish', n: 1, label: 'הגע לקו הסיום' }, { kind: 'coins', n: 24, label: 'אסוף 24 מטבעות' }, { kind: 'nocrash', n: 0, label: 'סיים בלי התנגשות' }] },
+];
+
 // ---------- canvas ----------
 const cv = document.getElementById('c');
 const ctx = cv.getContext('2d');
@@ -85,8 +140,13 @@ window.addEventListener('orientationchange', () => setTimeout(resize, 150));
 resize();
 
 // ---------- save ----------
-const save = { best: 0, coins: 0, owned: [0], car: 0, mute: false };
+const save = { best: 0, coins: 0, owned: [0], car: 0, mute: false, stars: Array(20).fill(0) };
 try { Object.assign(save, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) {}
+if (!Array.isArray(save.owned)) save.owned = [0];
+if (!Array.isArray(save.stars) || save.stars.length < STAGES.length) {
+  const prev = Array.isArray(save.stars) ? save.stars : [];
+  save.stars = Array.from({ length: STAGES.length }, (_, i) => Math.max(0, Math.min(3, prev[i] | 0)));
+}
 function persist() { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} }
 
 // ---------- sound ----------
@@ -131,6 +191,7 @@ function crashSound() {
   s.connect(g); g.connect(ac.destination); s.start();
 }
 const coinSound = () => { blip(880, 1320, 0.09, 'square', 0.05); setTimeout(() => blip(1320, 1760, 0.12, 'square', 0.05), 70); };
+const winSound = () => { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => blip(f, f * 1.02, 0.16, 'triangle', 0.07), i * 95)); };
 const buzz = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} };
 
 // ---------- helpers ----------
@@ -138,7 +199,8 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const mod = (a, n) => ((a % n) + n) % n;
 const curve = d => 32 * Math.sin(d / 260) + 18 * Math.sin(d / 140 + 1.3);
 const hash = n => { n = (n * 374761393 + 668265263) | 0; n = (n ^ (n >>> 13)) * 1274126177 | 0; return (n ^ (n >>> 16)) >>> 0; };
-const biomeAt = D => mod(Math.floor(D / ZONE), 4);
+const stageBiomeLock = () => activeStage && (state === 'play' || state === 'paused' || state === 'stageCard' || state === 'stageOver');
+const biomeAt = D => stageBiomeLock() ? activeStage.world : mod(Math.floor(D / ZONE), 4);
 const HEB = /[֐-׿]/;
 
 function rgb(hex) { const n = parseInt(hex.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
@@ -150,7 +212,9 @@ function alpha(hex, a) { return 'rgba(' + rgb(hex).join(',') + ',' + a + ')'; }
 function rng(seed) { return () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296; }
 
 function biomeWeights(D) {
-  const w = [0, 0, 0, 0], i = Math.floor(D / ZONE), s = D - i * ZONE, cur = mod(i, 4), T = 1800;
+  const w = [0, 0, 0, 0];
+  if (stageBiomeLock()) { w[activeStage.world] = 1; return w; }
+  const i = Math.floor(D / ZONE), s = D - i * ZONE, cur = mod(i, 4), T = 1800;
   if (s < T && i > 0) { w[cur] = s / T; w[mod(i - 1, 4)] += 1 - s / T; } else w[cur] = 1;
   return w;
 }
@@ -187,6 +251,53 @@ function heart(x, y, s, fill, line) {
   ctx.closePath();
   if (fill) { ctx.fillStyle = fill; ctx.fill(); }
   if (line) { ctx.lineWidth = 2; ctx.strokeStyle = line; ctx.stroke(); }
+}
+
+function drawStar(x, y, r, fill, line, lw) {
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const a = -Math.PI / 2 + i * Math.PI / 5;
+    const rad = i % 2 ? r * 0.45 : r;
+    if (i === 0) ctx.moveTo(x + Math.cos(a) * rad, y + Math.sin(a) * rad);
+    else ctx.lineTo(x + Math.cos(a) * rad, y + Math.sin(a) * rad);
+  }
+  ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (line) { ctx.lineWidth = lw || 1.6; ctx.strokeStyle = line; ctx.lineJoin = 'round'; ctx.stroke(); }
+}
+
+function drawCrown(x, y, s, fill, line) {
+  ctx.beginPath();
+  ctx.moveTo(x - s, y + s * 0.55);
+  ctx.lineTo(x - s * 1.15, y - s * 0.45);
+  ctx.lineTo(x - s * 0.45, y + s * 0.05);
+  ctx.lineTo(x, y - s * 0.75);
+  ctx.lineTo(x + s * 0.45, y + s * 0.05);
+  ctx.lineTo(x + s * 1.15, y - s * 0.45);
+  ctx.lineTo(x + s, y + s * 0.55);
+  ctx.closePath();
+  ctx.fillStyle = fill || '#ffd60a'; ctx.fill();
+  ctx.lineWidth = 1.5; ctx.strokeStyle = line || '#7a4500'; ctx.lineJoin = 'round'; ctx.stroke();
+}
+
+function drawLock(x, y, s, col) {
+  ctx.strokeStyle = col || '#fff'; ctx.lineWidth = Math.max(1.8, s * 0.22);
+  ctx.beginPath();
+  ctx.arc(x, y - s * 0.25, s * 0.42, Math.PI, 0);
+  ctx.stroke();
+  ctx.fillStyle = col || '#fff';
+  rr(x - s * 0.62, y - s * 0.22, s * 1.24, s * 0.95, s * 0.22);
+  ctx.fill();
+}
+
+function drawFlag(x, y, s) {
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(x - s * 0.5, y + s * 0.75); ctx.lineTo(x - s * 0.5, y - s * 0.75); ctx.stroke();
+  const fw = s * 1.05, fh = s * 0.7;
+  for (let r = 0; r < 2; r++) for (let c = 0; c < 3; c++) {
+    ctx.fillStyle = (r + c) % 2 === 0 ? '#ffffff' : '#1a1d24';
+    ctx.fillRect(x - s * 0.5 + 1 + c * (fw / 3), y - s * 0.75 + r * (fh / 2), fw / 3, fh / 2);
+  }
 }
 
 // ---------- sprites (drawn once at high resolution, then reused) ----------
@@ -547,14 +658,17 @@ function fillTex(pat, size, vd) {
 }
 
 // ---------- game state ----------
-let state = 'menu';        // menu | garage | play | paused | over
+let state = 'menu';        // menu | map | stageCard | garage | play | paused | over | stageOver
 let t = 0, demoDist = 0;
 let dist = 0, speed = 0, px = W / 2, tx = W / 2;
-let lives = 3, coinsRun = 0, smashes = 0, invuln = 0, nitro = 0, shake = 0, flash = 0;
+let lives = 3, maxLives = 3, coinsRun = 0, smashes = 0, invuln = 0, nitro = 0, shake = 0, flash = 0;
 let countdown = 0, goFlash = 0, overT = 0, offroad = false;
 let traffic = [], coins = [], bolts = [], parts = [], confetti = [];
 let nextRow = 0, nextCoin = 0, nextBolt = 0, prevFree = null, nextMilestone = 250, lastBiome = 0;
 let score = 0, newBest = false, popup = null, garageMsg = 0, lastTick = 0;
+let activeStage = null, selectedStage = 0, unlockedAll = false;
+let stageTime = 0, crashes = 0, stageFailed = false, earnedStars = 0, starBonus = 0, goalResults = [];
+let mapMsg = 0, mapMsgText = '';
 let ui = [];
 const lamps = [];
 const keys = { left: false, right: false };
@@ -564,24 +678,99 @@ const BIOME_NAMES = ['אחו ירוק', 'מדבר', 'ארץ השלג', 'לילה
 const carX = (lane, D, vd) => W / 2 + (curve(D) - curve(vd)) + (lane - 1.5) * LANE;
 const screenY = (D, vd) => PLAYER_Y - (D - vd);
 
-function startRun() {
+// ---------- journey helpers ----------
+function worldStars14(w) {
+  let sum = 0;
+  for (let s = 0; s < 4; s++) sum += save.stars[w * 5 + s] || 0;
+  return sum;
+}
+function worldStarsTotal(w) {
+  let sum = 0;
+  for (let s = 0; s < 5; s++) sum += save.stars[w * 5 + s] || 0;
+  return sum;
+}
+function totalStars() {
+  let sum = 0;
+  for (let i = 0; i < STAGES.length; i++) sum += save.stars[i] || 0;
+  return sum;
+}
+function isWorldUnlocked(w) {
+  if (unlockedAll || w === 0) return true;
+  return (save.stars[(w - 1) * 5 + 4] || 0) >= 1;
+}
+function isStageUnlocked(w, s) {
+  if (unlockedAll) return true;
+  if (!isWorldUnlocked(w)) return false;
+  if (s === 0) return true;
+  if (s < 4) return (save.stars[w * 5 + s - 1] || 0) >= 1;
+  return (save.stars[w * 5 + 3] || 0) >= 1 && worldStars14(w) >= BOSS_REQ_STARS;
+}
+function spawnConfetti(n) {
+  const cols = ['#ffd60a', '#ff4d6d', '#4cc9f0', '#7CFC00', '#ff9f1c', '#c77dff'];
+  for (let i = 0; i < n; i++) confetti.push({ x: Math.random() * W, y: -20 - Math.random() * 300, vx: (Math.random() - 0.5) * 60, vy: 80 + Math.random() * 120, r: Math.random() * 6, vr: (Math.random() - 0.5) * 10, c: cols[i % cols.length], s: 4 + Math.random() * 4 });
+}
+function resetRunVars() {
   audioInit();
   state = 'play';
   dist = 0; speed = 150; px = W / 2; tx = px;
-  lives = 3; coinsRun = 0; smashes = 0; invuln = 0; nitro = 0; shake = 0; flash = 0;
+  maxLives = 3; lives = maxLives; coinsRun = 0; smashes = 0; crashes = 0; stageTime = 0;
+  invuln = 0; nitro = 0; shake = 0; flash = 0;
   traffic = []; coins = []; bolts = []; parts = []; confetti = []; popup = null;
-  nextRow = 650; nextCoin = 900; nextBolt = 2600; prevFree = null; nextMilestone = 250; lastBiome = 0;
+  nextRow = 650; nextCoin = 900; nextBolt = activeStage ? 1700 : 2600;
+  prevFree = null; nextMilestone = 250; lastBiome = activeStage ? activeStage.world : 0;
   countdown = 3; goFlash = 0; lastTick = 4;
+  stageFailed = false; earnedStars = 0; starBonus = 0; goalResults = [];
+}
+function startFreeRun() { activeStage = null; resetRunVars(); }
+function startRun() { startFreeRun(); }
+function openStageCard(idx) {
+  selectedStage = clamp(idx, 0, STAGES.length - 1);
+  activeStage = STAGES[selectedStage];
+  state = 'stageCard';
+}
+function startStage(idx) {
+  selectedStage = clamp(idx, 0, STAGES.length - 1);
+  activeStage = STAGES[selectedStage];
+  resetRunVars();
+}
+function evalGoal(g) {
+  if (g.kind === 'finish') return !stageFailed;
+  if (g.kind === 'coins') return coinsRun >= g.n;
+  if (g.kind === 'nocrash') return crashes === 0;
+  if (g.kind === 'smash') return smashes >= g.n;
+  if (g.kind === 'time') return stageTime <= g.n;
+  if (g.kind === 'lead') return true; // Phase C will compare player and rival distance
+  return false;
+}
+function finishStage() {
+  if (!activeStage) return;
+  state = 'stageOver'; overT = 0; stageFailed = false;
+  goalResults = activeStage.goals.map(evalGoal);
+  earnedStars = goalResults.filter(Boolean).length;
+  const oldStars = save.stars[activeStage.id] || 0;
+  starBonus = 0;
+  for (let k = oldStars; k < earnedStars; k++) starBonus += activeStage.starCoins[k] || 0;
+  if (starBonus > 0) save.coins += starBonus;
+  if (earnedStars > oldStars) save.stars[activeStage.id] = earnedStars;
+  persist();
+  if (earnedStars > oldStars || activeStage.s === 4) spawnConfetti(75);
+  winSound();
+  engineSet(false, 0);
+}
+function failStage() {
+  if (!activeStage) return;
+  state = 'stageOver'; overT = 0; stageFailed = true;
+  goalResults = activeStage.goals.map(() => false);
+  earnedStars = 0; starBonus = 0;
+  persist();
+  engineSet(false, 0);
 }
 function endRun() {
+  if (activeStage) return failStage();
   state = 'over'; overT = 0;
   score = Math.floor(dist / 50) + coinsRun * 10 + smashes * 25;
   newBest = score > save.best && score > 0;
-  if (newBest) {
-    save.best = score;
-    const cols = ['#ffd60a', '#ff4d6d', '#4cc9f0', '#7CFC00', '#ff9f1c', '#c77dff'];
-    for (let i = 0; i < 90; i++) confetti.push({ x: Math.random() * W, y: -20 - Math.random() * 300, vx: (Math.random() - 0.5) * 60, vy: 80 + Math.random() * 120, r: Math.random() * 6, vr: (Math.random() - 0.5) * 10, c: cols[i % cols.length], s: 4 + Math.random() * 4 });
-  }
+  if (newBest) { save.best = score; spawnConfetti(90); }
   persist();
   engineSet(false, 0);
 }
@@ -654,7 +843,7 @@ function hit(car) {
     return;
   }
   if (invuln > 0) return;
-  lives--;
+  lives--; crashes++;
   invuln = 1.7; shake = 0.4; flash = 0.25;
   speed *= 0.45;
   burst(x, y, '#ffb703', 14, 140);
@@ -673,7 +862,11 @@ function updatePlay(dt) {
     return;
   }
   goFlash = Math.max(0, goFlash - dt);
-  const base = 320 + Math.min(280, dist / 90);
+  if (activeStage) stageTime += dt;
+  const sf = activeStage ? activeStage.speedFactor : 1;
+  const td = activeStage ? activeStage.traffic : 1;
+  const finishD = activeStage ? activeStage.length * 50 : Infinity;
+  const base = activeStage ? (320 * sf + Math.min(60, dist / 400)) : (320 + Math.min(280, dist / 90));
   offroad = Math.abs(px - W / 2) > HALF + 6;
   const target = base * (nitro > 0 ? 1.5 : 1) * (offroad && nitro <= 0 ? 0.55 : 1);
   speed += (target - speed) * Math.min(1, dt * (target < speed ? 3 : 1.4));
@@ -684,10 +877,19 @@ function updatePlay(dt) {
   flash = Math.max(0, flash - dt);
   if (popup && (popup.life -= dt) <= 0) popup = null;
 
-  const horizon = dist + PLAYER_Y + 160;
-  while (nextRow < horizon) { spawnRow(nextRow); nextRow += Math.max(230, 360 - dist / 120) * (0.85 + Math.random() * 0.4); }
+  if (activeStage && dist >= finishD) { finishStage(); return; }
+
+  const horizon = Math.min(dist + PLAYER_Y + 160, finishD - 140);
+  while (nextRow < horizon) {
+    spawnRow(nextRow);
+    const gap = activeStage ? Math.max(195, (350 / td) - dist / 400) : Math.max(230, 360 - dist / 120);
+    nextRow += gap * (0.85 + Math.random() * 0.4);
+  }
   while (nextCoin < horizon) { spawnCoins(nextCoin); nextCoin += 420 + Math.random() * 500; }
-  while (nextBolt < horizon) { spawnBolt(nextBolt); nextBolt += 2600 + Math.random() * 1800; }
+  while (nextBolt < horizon - 120) {
+    spawnBolt(nextBolt);
+    nextBolt += activeStage ? (2100 + Math.random() * 1200) : (2600 + Math.random() * 1800);
+  }
 
   const ts = base * 0.42;
   for (const c of traffic) c.D += ts * dt;
@@ -714,10 +916,12 @@ function updatePlay(dt) {
       blip(300, 1200, 0.4, 'sawtooth', 0.08); buzz(60);
     }
   }
-  const b = biomeAt(dist);
-  if (b !== lastBiome) { lastBiome = b; showPopup(BIOME_NAMES[b], 'עולם חדש'); }
-  const m = Math.floor(dist / 50);
-  if (m >= nextMilestone) { if (!popup) showPopup(String(m), 'מטר'); nextMilestone += 250; }
+  if (!activeStage) {
+    const b = biomeAt(dist);
+    if (b !== lastBiome) { lastBiome = b; showPopup(BIOME_NAMES[b], 'עולם חדש'); }
+    const m = Math.floor(dist / 50);
+    if (m >= nextMilestone) { if (!popup) showPopup(String(m), 'מטר'); nextMilestone += 250; }
+  }
 
   if (offroad && nitro <= 0 && Math.random() < dt * 30) {
     const dc = ['#8a6a3a', '#d9b56e', '#ffffff', '#5a4a30'][biomeAt(dist)];
@@ -731,9 +935,9 @@ function updatePlay(dt) {
 
 function update(dt) {
   t += dt;
-  if (state === 'menu' || state === 'garage') demoDist += 260 * dt;
+  if (state === 'menu' || state === 'map' || state === 'stageCard' || state === 'garage') demoDist += 260 * dt;
   else if (state === 'play') updatePlay(dt);
-  else if (state === 'over') {
+  else if (state === 'over' || state === 'stageOver') {
     overT += dt;
     speed *= Math.pow(0.15, dt);
     dist += speed * dt;
@@ -752,6 +956,7 @@ function update(dt) {
     if (f.y > H + 5) { f.y = -5; f.x = Math.random() * W; }
   }
   garageMsg = Math.max(0, garageMsg - dt);
+  mapMsg = Math.max(0, mapMsg - dt);
 }
 
 // ---------- drawing: world ----------
@@ -994,9 +1199,31 @@ function drawNight(a, game) {
   ctx.globalCompositeOperation = 'source-over';
 }
 
+function drawFinishLine(vd) {
+  if (!activeStage || (state !== 'play' && state !== 'paused' && state !== 'stageOver')) return;
+  const finishD = activeStage.length * 50;
+  const fy = screenY(finishD, vd);
+  if (fy < -90 || fy > H + 90) return;
+  const fx = W / 2 + curve(finishD) - curve(vd);
+  const cols = 12, sqW = (HALF * 2) / cols, sqH = 10;
+  for (let r = 0; r < 2; r++) {
+    for (let c = 0; c < cols; c++) {
+      ctx.fillStyle = (r + c) % 2 === 0 ? '#ffffff' : '#181a20';
+      ctx.fillRect(fx - HALF + c * sqW, fy - sqH + r * sqH, sqW + 0.5, sqH + 0.5);
+    }
+  }
+  for (const s of [-1, 1]) {
+    const px0 = fx + s * (HALF + 10);
+    ctx.fillStyle = '#e63946'; ctx.fillRect(px0 - 3, fy - 34, 6, 36);
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(px0 - 3, fy - 24, 6, 9);
+    drawFlag(px0 + (s < 0 ? 5 : -5), fy - 38, 11);
+  }
+}
+
 function drawWorld(vd, game) {
   drawGround(vd);
   drawRoad(vd);
+  drawFinishLine(vd);
   drawDecor(vd);
   if (game) { drawObjects(); if (nitro > 0) drawSpeedLines(); drawPlayer(); }
   drawParts();
@@ -1022,15 +1249,84 @@ function button(x, y, w, h, label, c1, c2, fn, size) {
 }
 function pill(x, y, w, h) { ctx.fillStyle = 'rgba(10,16,30,.45)'; rr(x, y, w, h, h / 2); ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.lineWidth = 1.5; ctx.stroke(); }
 
+function drawSpeedometer() {
+  const kmh = Math.round(speed * SPEED_FACTOR);
+  const maxKmh = 200;
+  const frac = clamp(kmh / maxKmh, 0, 1);
+  const cx = W - 46, cy = H - 44, R = 31;
+  const isTurbo = nitro > 0;
+  ctx.fillStyle = 'rgba(10,16,30,.68)';
+  circle(ctx, cx, cy, R + 3); ctx.fill();
+  ctx.lineWidth = isTurbo ? 2.5 : 1.5;
+  ctx.strokeStyle = isTurbo ? '#00f5d4' : 'rgba(255,255,255,.2)';
+  ctx.stroke();
+
+  const a0 = Math.PI * 0.78, a1 = Math.PI * 2.22, span = a1 - a0;
+  const ang = a0 + frac * span;
+  ctx.lineCap = 'round';
+  ctx.lineWidth = 5.5;
+  ctx.strokeStyle = 'rgba(255,255,255,.14)';
+  ctx.beginPath(); ctx.arc(cx, cy, R - 5, a0, a1); ctx.stroke();
+
+  if (frac > 0.01) {
+    ctx.strokeStyle = isTurbo ? '#00f5d4' : (kmh >= 125 ? '#ff9f1c' : '#4cc9f0');
+    ctx.beginPath(); ctx.arc(cx, cy, R - 5, a0, ang); ctx.stroke();
+  }
+  ctx.lineCap = 'butt';
+
+  for (let i = 0; i <= 4; i++) {
+    const ta = a0 + (i / 4) * span;
+    ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(ta) * (R - 10), cy + Math.sin(ta) * (R - 10));
+    ctx.lineTo(cx + Math.cos(ta) * (R - 2), cy + Math.sin(ta) * (R - 2));
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle = isTurbo ? '#ffd60a' : '#ff4d6d'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + Math.cos(ang) * (R - 8), cy + Math.sin(ang) * (R - 8));
+  ctx.stroke(); ctx.lineCap = 'butt';
+  ctx.fillStyle = '#fff'; circle(ctx, cx, cy, 3.2); ctx.fill();
+
+  text(String(kmh), cx, cy + 10, 16, isTurbo ? '#00f5d4' : '#ffffff');
+  text('קמ"ש', cx, cy + 22, 9, '#a8c0d6');
+}
+
+function drawJourneyProgress() {
+  const finishD = activeStage.length * 50;
+  const prog = clamp(dist / finishD, 0, 1);
+  pill(104, 10, 158, 34);
+  const x0 = 117, x1 = 232, ty = 20;
+  ctx.lineCap = 'round'; ctx.lineWidth = 5;
+  ctx.strokeStyle = 'rgba(255,255,255,.18)';
+  ctx.beginPath(); ctx.moveTo(x0, ty); ctx.lineTo(x1, ty); ctx.stroke();
+  if (prog > 0.01) {
+    ctx.strokeStyle = WORLDS[activeStage.world].accent;
+    ctx.beginPath(); ctx.moveTo(x0, ty); ctx.lineTo(x0 + prog * (x1 - x0), ty); ctx.stroke();
+  }
+  ctx.lineCap = 'butt';
+  drawFlag(245, ty, 8.5);
+  const dx = x0 + prog * (x1 - x0);
+  ctx.fillStyle = '#ffffff'; circle(ctx, dx, ty, 5); ctx.fill();
+  ctx.fillStyle = '#ffd60a'; circle(ctx, dx, ty, 3); ctx.fill();
+  const curM = Math.min(activeStage.length, Math.floor(dist / 50));
+  text(curM + ' / ' + activeStage.length + ' מ׳', 183, 35, 10, '#d7e5f5');
+}
+
 function drawHud() {
   pill(8, 10, 92, 34);
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < maxLives; i++) {
     if (i < lives) heart(28 + i * 26, 27, 8.5, '#ff4d6d', '#ffffff');
     else heart(28 + i * 26, 27, 8.5, 'rgba(0,0,0,.35)', 'rgba(255,255,255,.35)');
   }
-  const sc = Math.floor(dist / 50) + coinsRun * 10 + smashes * 25;
-  pill(W / 2 - 52, 8, 104, 40);
-  text(String(sc), W / 2, 29, 28, '#fff');
+  if (activeStage) {
+    drawJourneyProgress();
+  } else {
+    const sc = Math.floor(dist / 50) + coinsRun * 10 + smashes * 25;
+    pill(W / 2 - 52, 8, 104, 40);
+    text(String(sc), W / 2, 29, 28, '#fff');
+  }
   pill(W - 92, 10, 84, 34);
   blit(coinSprite(), W - 72, 27, 0, 0.85);
   text(String(coinsRun), W - 56, 28, 22, '#ffe066', null, 'left');
@@ -1040,6 +1336,7 @@ function drawHud() {
     g.addColorStop(0, '#4cc9f0'); g.addColorStop(1, '#ffd60a');
     ctx.fillStyle = g; rr(W / 2 - 70, H - 36, 140 * (nitro / 3.2), 14, 7); ctx.fill();
   }
+  drawSpeedometer();
   if (popup) {
     const k = 1.8 - popup.life;
     ctx.globalAlpha = clamp(popup.life * 2, 0, 1);
@@ -1078,36 +1375,273 @@ function title(s, y, size) {
 }
 
 function drawMenu() {
+  activeStage = null;
   drawWorld(demoDist, false);
   const g = ctx.createLinearGradient(0, 0, 0, H * 0.35);
   g.addColorStop(0, 'rgba(0,0,0,.45)'); g.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H * 0.35);
+  const compact = H < 650;
+  const ty = compact ? H * 0.08 : H * 0.10;
+  const tg = compact ? 52 : 62;
+  const tsz = compact ? 56 : 64;
   const bob = Math.sin(t * 2.2) * 3;
   ctx.save(); ctx.translate(0, bob);
-  ctx.save(); ctx.translate(W / 2, H * 0.11); ctx.rotate(-0.04); ctx.translate(-W / 2, -H * 0.11);
-  title('מירוץ', H * 0.11, 66);
+  ctx.save(); ctx.translate(W / 2, ty); ctx.rotate(-0.04); ctx.translate(-W / 2, -ty);
+  title('מירוץ', ty, tsz);
   ctx.restore();
-  ctx.save(); ctx.translate(W / 2, H * 0.11 + 64); ctx.rotate(0.03); ctx.translate(-W / 2, -H * 0.11 - 64);
-  title('הכביש', H * 0.11 + 64, 66);
+  ctx.save(); ctx.translate(W / 2, ty + tg); ctx.rotate(0.03); ctx.translate(-W / 2, -ty - tg);
+  title('הכביש', ty + tg, tsz);
   ctx.restore();
   ctx.restore();
+
   const car = CARS[save.car] || CARS[0];
-  const cy = H * 0.41;
+  const cy = compact ? H * 0.32 : H * 0.35;
   ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.35;
-  blit(glowSprite('#fff6d0'), W / 2, cy, 0, 2.6);
+  blit(glowSprite('#fff6d0'), W / 2, cy, 0, compact ? 2.1 : 2.5);
   ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
-  blit(vehicleSprite(car.style, car.body, car.stripe), W / 2, cy + Math.sin(t * 2) * 4, Math.sin(t * 1.3) * 0.06, 2.3);
-  button(W / 2, H * 0.6, 236, 70, 'שחק!', '#2dbd5a', '#17803a', startRun, 36);
-  button(W / 2, H * 0.6 + 88, 236, 56, 'המוסך', '#2a7de1', '#1a4f94', () => { state = 'garage'; }, 26);
-  const py = H * 0.6 + 150;
-  ctx.fillStyle = 'rgba(10,16,30,.55)'; rr(W / 2 - 118, py, 236, 70, 18); ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,.15)'; ctx.lineWidth = 1.5; ctx.stroke();
-  text('השיא שלי', W / 2 + 58, py + 22, 15, '#c9d6e3');
-  text(String(save.best), W / 2 + 58, py + 48, 26, '#ffd60a');
-  text('מטבעות', W / 2 - 58, py + 22, 15, '#c9d6e3');
-  blit(coinSprite(), W / 2 - 80, py + 48, 0, 0.8);
-  text(String(save.coins), W / 2 - 66, py + 49, 24, '#ffe066', null, 'left');
+  blit(vehicleSprite(car.style, car.body, car.stripe), W / 2, cy + Math.sin(t * 2) * 4, Math.sin(t * 1.3) * 0.06, compact ? 1.85 : 2.15);
+
+  const b1y = compact ? H * 0.49 : H * 0.51;
+  const b2y = b1y + (compact ? 62 : 70);
+  const b3y = b2y + (compact ? 54 : 60);
+  button(W / 2, b1y, 244, compact ? 58 : 64, 'מסע', '#2dbd5a', '#17803a', () => { state = 'map'; }, 32);
+  const starsAll = totalStars();
+  if (starsAll > 0) {
+    drawStar(W / 2 - 84, b1y, 9, '#ffd60a', '#6b3800');
+    text(starsAll + '/60', W / 2 - 70, b1y + 1, 13, '#fff6b0', OUT, 'left');
+  }
+  button(W / 2, b2y, 244, compact ? 46 : 50, 'נסיעה חופשית', '#e88d14', '#9e5806', startFreeRun, 22);
+  button(W / 2, b3y, 244, compact ? 44 : 48, 'מוסך', '#2a7de1', '#1a4f94', () => { state = 'garage'; }, 22);
+
+  const py = b3y + (compact ? 30 : 34), ph = compact ? 60 : 66;
+  ctx.fillStyle = 'rgba(10,16,30,.58)'; rr(W / 2 - 122, py, 244, ph, 18); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.16)'; ctx.lineWidth = 1.5; ctx.stroke();
+  text('השיא שלי', W / 2 + 60, py + ph * 0.32, 14, '#c9d6e3');
+  text(String(save.best), W / 2 + 60, py + ph * 0.70, 24, '#ffd60a');
+  text('מטבעות', W / 2 - 60, py + ph * 0.32, 14, '#c9d6e3');
+  blit(coinSprite(), W / 2 - 82, py + ph * 0.70, 0, 0.78);
+  text(String(save.coins), W / 2 - 68, py + ph * 0.71, 22, '#ffe066', null, 'left');
   soundButton();
+}
+
+function drawMap() {
+  drawWorld(demoDist, false);
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, 'rgba(10,16,36,.92)'); bg.addColorStop(1, 'rgba(18,12,38,.9)');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+  // Header
+  text('מפת המסע', W / 2, 30, 28, '#ffd60a', { w: 6, c: '#5a2400' });
+  pill(10, 12, 82, 34);
+  drawStar(27, 29, 8.5, '#ffd60a', '#7a4500');
+  text(totalStars() + '/60', 40, 30, 14, '#fff', null, 'left');
+  button(W - 40, 29, 60, 44, 'חזרה', '#6c757d', '#41474d', () => { state = 'menu'; }, 16);
+
+  const top = 62, bottom = H - (mapMsg > 0 ? 36 : 12);
+  const gap = 8, cardH = Math.floor((bottom - top - gap * 3) / 4);
+
+  for (let w = 0; w < 4; w++) {
+    const world = WORLDS[w], worldOpen = isWorldUnlocked(w);
+    const x0 = 12, y0 = top + w * (cardH + gap), cw = W - 24, ch = cardH;
+    const g = ctx.createLinearGradient(x0, y0, x0, y0 + ch);
+    g.addColorStop(0, alpha(world.c1, worldOpen ? 0.34 : 0.14));
+    g.addColorStop(1, alpha(world.c2, worldOpen ? 0.56 : 0.25));
+    ctx.fillStyle = g; rr(x0, y0, cw, ch, 16); ctx.fill();
+    ctx.lineWidth = worldOpen ? 2 : 1.2;
+    ctx.strokeStyle = worldOpen ? alpha(world.accent, 0.7) : 'rgba(255,255,255,.15)';
+    ctx.stroke();
+
+    // World title + star count
+    text((w + 1) + '. ' + world.name, x0 + cw - 12, y0 + 18, 16, worldOpen ? '#fff' : '#8b9bb4', OUT, 'right');
+    drawStar(x0 + 22, y0 + 18, 6.8, '#ffd60a', '#6b3800');
+    text(worldStarsTotal(w) + '/15', x0 + 34, y0 + 19, 13, '#ffe066', null, 'left');
+
+    const w14 = worldStars14(w);
+    if (worldOpen && !isStageUnlocked(w, 4) && w14 < BOSS_REQ_STARS) {
+      ctx.fillStyle = 'rgba(0,0,0,.45)'; rr(x0 + 86, y0 + 8, 114, 20, 10); ctx.fill();
+      text('צריך 8 כוכבים', x0 + 143, y0 + 18, 11, '#ffd60a');
+    }
+
+    // 5 stage tiles (right-to-left: stage 1 on right, boss 5 on left)
+    const tw = 54, th = clamp(ch - 38, 48, 86);
+    const stepX = (cw - 24 - tw) / 4;
+    const ty0 = y0 + 30 + (ch - 34 - th) / 2;
+    const lineY = ty0 + th / 2;
+    ctx.strokeStyle = worldOpen ? 'rgba(255,255,255,.22)' : 'rgba(255,255,255,.08)';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(x0 + 12 + tw / 2, lineY); ctx.lineTo(x0 + cw - 12 - tw / 2, lineY); ctx.stroke();
+
+    for (let s = 0; s < 5; s++) {
+      const idx = w * 5 + s, open = isStageUnlocked(w, s), stars = save.stars[idx] || 0, isBoss = s === 4;
+      const tx0 = x0 + cw - 12 - tw - s * stepX, cx = tx0 + tw / 2, cy = ty0 + th / 2;
+      const pulse = open && stars === 0 ? 0.5 + 0.5 * Math.sin(t * 4 + s) : 0;
+
+      if (open) {
+        const tg = ctx.createLinearGradient(0, ty0, 0, ty0 + th);
+        tg.addColorStop(0, stars > 0 ? shade(world.c1, 0.25) : (isBoss ? '#d97706' : '#334e7d'));
+        tg.addColorStop(1, stars > 0 ? world.c2 : (isBoss ? '#7c2d12' : '#1b2b48'));
+        ctx.fillStyle = tg;
+      } else {
+        ctx.fillStyle = 'rgba(10,14,26,.78)';
+      }
+      rr(tx0, ty0, tw, th, 12); ctx.fill();
+      ctx.lineWidth = open ? (stars > 0 ? 2 : 2 + pulse) : 1.2;
+      ctx.strokeStyle = open ? (isBoss ? '#ffd60a' : (stars > 0 ? world.accent : '#ffffff')) : 'rgba(255,255,255,.16)';
+      ctx.stroke();
+
+      if (!open) {
+        drawLock(cx, cy - (isBoss && worldOpen ? 10 : 4), 8.5, isBoss ? '#ffd60a' : '#7f91ab');
+        if (isBoss && worldOpen && w14 < BOSS_REQ_STARS) {
+          text(w14 + '/8', cx, cy + 12, 11, '#ffd60a');
+        }
+      } else {
+        if (isBoss) drawCrown(cx, cy - 10, 9.5, '#ffd60a', '#6b3800');
+        else text(String(s + 1), cx, cy - 8, 20, '#fff', OUT);
+        for (let k = 0; k < 3; k++) {
+          const sx = cx + (k - 1) * 13, sy = ty0 + th - 10;
+          drawStar(sx, sy, 5, k < stars ? '#ffd60a' : 'rgba(255,255,255,.18)', k < stars ? '#7a4500' : 'rgba(255,255,255,.35)', 1);
+        }
+      }
+
+      ui.push({ x: tx0, y: ty0, w: tw, h: th, fn: () => {
+        audioInit();
+        if (open) { blip(660, 880, 0.08, 'square', 0.05); openStageCard(idx); }
+        else {
+          blip(180, 120, 0.15, 'square', 0.05); buzz(40);
+          mapMsg = 1.8;
+          mapMsgText = !worldOpen ? 'נצחו קודם את הבוס הקודם!' : (isBoss && w14 < BOSS_REQ_STARS ? 'צריך 8 כוכבים בשלבים 1-4!' : 'סיימו קודם את השלב הקודם!');
+        }
+      } });
+    }
+
+    if (!worldOpen) {
+      ctx.fillStyle = 'rgba(6,10,20,.45)'; rr(x0, y0, cw, ch, 16); ctx.fill();
+    }
+  }
+
+  if (mapMsg > 0) {
+    ctx.fillStyle = 'rgba(220,38,38,.9)'; rr(24, H - 32, W - 48, 26, 13); ctx.fill();
+    text(mapMsgText, W / 2, H - 19, 13, '#fff');
+  }
+}
+
+function drawStageCard() {
+  const st = activeStage || STAGES[selectedStage] || STAGES[0];
+  const world = WORLDS[st.world];
+  drawWorld(demoDist, false);
+  ctx.fillStyle = 'rgba(6,10,22,.64)'; ctx.fillRect(0, 0, W, H);
+
+  const cw = 316, ch = Math.min(440, H - 32), x0 = (W - cw) / 2, y0 = (H - ch) / 2;
+  const g = ctx.createLinearGradient(0, y0, 0, y0 + ch);
+  g.addColorStop(0, '#223458'); g.addColorStop(1, '#121b30');
+  ctx.fillStyle = g; rr(x0, y0, cw, ch, 24); ctx.fill();
+  ctx.lineWidth = 3.5; ctx.strokeStyle = st.s === 4 ? '#ffd60a' : world.accent; ctx.stroke();
+
+  // World badge
+  ctx.fillStyle = alpha(world.c1, 0.45); rr(W / 2 - 96, y0 + 14, 192, 26, 13); ctx.fill();
+  text(world.name + ' - שלב ' + (st.s + 1), W / 2, y0 + 27, 13, '#fff');
+
+  if (st.s === 4) drawCrown(W / 2, y0 + 54, 10, '#ffd60a', '#6b3800');
+  text(st.name, W / 2, y0 + (st.s === 4 ? 76 : 64), 27, '#ffd60a', OUT);
+  const typeTag = st.type === 'boss' ? 'שלב בוס' : (st.type === 'race' ? 'מירוץ' : st.type === 'duel' ? 'דו קרב' : 'מסלול');
+  text(typeTag + ' | ' + st.length + ' מ׳', W / 2, y0 + (st.s === 4 ? 102 : 92), 14, '#b8cce0');
+
+  const bestStars = save.stars[st.id] || 0;
+  const starY = y0 + (st.s === 4 ? 130 : 122);
+  for (let i = 0; i < 3; i++) {
+    drawStar(W / 2 + (i - 1) * 34, starY, 13, i < bestStars ? '#ffd60a' : 'rgba(255,255,255,.14)', i < bestStars ? '#7a4500' : 'rgba(255,255,255,.35)', 2);
+  }
+
+  // 3 Goals box
+  const gy0 = starY + 24, gh = Math.min(138, ch - (gy0 - y0) - 126), rowH = gh / 3;
+  ctx.fillStyle = 'rgba(0,0,0,.3)'; rr(x0 + 16, gy0, cw - 32, gh, 14); ctx.fill();
+  st.goals.forEach((goal, i) => {
+    const ry = gy0 + i * rowH + rowH / 2;
+    drawStar(x0 + cw - 32, ry, 8, i < bestStars ? '#ffd60a' : 'rgba(255,255,255,.25)', '#6b3800', 1.2);
+    text(goal.label, x0 + cw - 48, ry + 1, 15, '#fff', null, 'right');
+    if (i >= bestStars) {
+      blit(coinSprite(), x0 + 32, ry, 0, 0.58);
+      text('+' + st.starCoins[i], x0 + 44, ry + 1, 13, '#ffe066', null, 'left');
+    } else {
+      text('✓', x0 + 36, ry + 1, 15, '#7CFC00');
+    }
+  });
+
+  const btn1Y = y0 + ch - 90, btn2Y = y0 + ch - 32;
+  button(W / 2, btn1Y, 240, 50, 'צא למירוץ!', '#2dbd5a', '#17803a', () => startStage(st.id), 25);
+  button(W / 2, btn2Y, 160, 44, 'חזרה למפה', '#6c757d', '#41474d', () => { state = 'map'; }, 18);
+}
+
+function drawStageOver() {
+  const st = activeStage || STAGES[selectedStage] || STAGES[0];
+  ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(0, 0, W, H);
+  const cx = W / 2, cy = H * 0.48;
+  const k = clamp(overT * 4, 0, 1);
+  const cw = 316, ch = stageFailed ? 300 : Math.min(440, H - 36);
+  ctx.save(); ctx.translate(cx, cy); ctx.scale(0.82 + 0.18 * k, 0.82 + 0.18 * k); ctx.globalAlpha = k;
+  const g = ctx.createLinearGradient(0, -ch / 2, 0, ch / 2);
+  g.addColorStop(0, '#24365a'); g.addColorStop(1, '#141d33');
+  ctx.fillStyle = g; rr(-cw / 2, -ch / 2, cw, ch, 24); ctx.fill();
+  ctx.lineWidth = 4; ctx.strokeStyle = stageFailed ? '#ff4d6d' : '#ffd60a'; ctx.stroke();
+
+  if (stageFailed) {
+    text('המכונית נעצרה!', 0, -ch / 2 + 38, 27, '#ff8fa3');
+    text(st.name, 0, -ch / 2 + 70, 17, '#c9d6e3');
+    const pct = clamp(Math.floor((dist / (st.length * 50)) * 100), 0, 99);
+    text('הגעת ל-' + pct + '% מהמסלול', 0, -ch / 2 + 112, 19, '#fff');
+    blit(coinSprite(), -24, -ch / 2 + 150, 0, 0.85);
+    text(String(coinsRun), -6, -ch / 2 + 151, 22, '#ffe066', null, 'left');
+  } else {
+    text(st.s === 4 ? 'ניצחת את הבוס!' : 'שלב הושלם!', 0, -ch / 2 + 34, 27, '#7CFC00', OUT);
+    text(st.name, 0, -ch / 2 + 64, 16, '#c9d6e3');
+
+    // Animated stars
+    const sy = -ch / 2 + 108;
+    for (let i = 0; i < 3; i++) {
+      const p = clamp((overT - (0.16 + i * 0.25)) / 0.26, 0, 1);
+      const sc = p < 1 ? (0.4 + Math.sin(p * Math.PI * 0.85) * 0.85) : 1;
+      const won = i < earnedStars;
+      ctx.save(); ctx.translate((i - 1) * 52, sy); ctx.scale(won ? sc : 1, won ? sc : 1);
+      drawStar(0, 0, 20, won ? '#ffd60a' : 'rgba(255,255,255,.14)', won ? '#7a4500' : 'rgba(255,255,255,.35)', 2);
+      ctx.restore();
+    }
+
+    // Goals checklist
+    const gy0 = -ch / 2 + 144, gh = 108, rowH = gh / 3;
+    ctx.fillStyle = 'rgba(0,0,0,.3)'; rr(-cw / 2 + 16, gy0, cw - 32, gh, 14); ctx.fill();
+    st.goals.forEach((goal, i) => {
+      const ry = gy0 + i * rowH + rowH / 2, ok = goalResults[i];
+      text(goal.label, cw / 2 - 30, ry + 1, 14, ok ? '#fff' : '#8b9bb4', null, 'right');
+      text(ok ? '✓' : '✗', -cw / 2 + 34, ry + 1, 17, ok ? '#7CFC00' : '#ff6b6b');
+    });
+
+    // Coins earned
+    const cyCoins = gy0 + gh + 28;
+    blit(coinSprite(), -74, cyCoins, 0, 0.85);
+    text('+' + coinsRun, -58, cyCoins + 1, 20, '#ffe066', null, 'left');
+    if (starBonus > 0) {
+      text('בונוס כוכבים: +' + starBonus, 56, cyCoins + 1, 15, '#7CFC00', null, 'center');
+    } else {
+      text('סה"כ: ' + save.coins, 56, cyCoins + 1, 15, '#c9d6e3', null, 'center');
+    }
+  }
+  ctx.restore(); ctx.globalAlpha = 1;
+
+  if (overT > 0.55) {
+    const nextIdx = st.id + 1;
+    const hasNext = !stageFailed && nextIdx < STAGES.length;
+    const nextOpen = hasNext && isStageUnlocked(STAGES[nextIdx].world, STAGES[nextIdx].s);
+    const botY = cy + ch / 2;
+    if (nextOpen) {
+      button(cx, botY - 104, 240, 48, 'הבא', '#2dbd5a', '#17803a', () => openStageCard(nextIdx), 23);
+      button(cx + 66, botY - 40, 122, 44, 'שוב', '#2a7de1', '#1a4f94', () => startStage(st.id), 20);
+      button(cx - 66, botY - 40, 122, 44, 'מפה', '#6c757d', '#41474d', () => { state = 'map'; }, 20);
+    } else {
+      if (hasNext && !nextOpen) text('צריך 8 כוכבים כדי לפתוח את הבוס!', cx, botY - 118, 13, '#ffd60a', OUT);
+      button(cx, botY - 82, 224, 48, 'שוב', '#2dbd5a', '#17803a', () => startStage(st.id), 22);
+      button(cx, botY - 28, 224, 44, 'מפה', '#6c757d', '#41474d', () => { state = 'map'; }, 19);
+    }
+  }
 }
 
 function soundButton() {
@@ -1117,6 +1651,7 @@ function soundButton() {
 }
 
 function drawGarage() {
+  activeStage = null;
   drawWorld(demoDist, false);
   const bg = ctx.createLinearGradient(0, 0, 0, H);
   bg.addColorStop(0, 'rgba(10,18,40,.92)'); bg.addColorStop(1, 'rgba(20,10,40,.88)');
@@ -1138,7 +1673,7 @@ function drawGarage() {
     ctx.lineWidth = sel ? 3.5 : 1.5; ctx.strokeStyle = sel ? '#5cff8d' : 'rgba(255,255,255,.18)'; ctx.stroke();
     const sc = Math.min(1.45, (ch - 40) / 60);
     blit(vehicleSprite(c.style, c.body, c.stripe), cx, cy - 12, sel ? Math.sin(t * 2) * 0.08 : 0, sc);
-    if (!owned) { ctx.fillStyle = 'rgba(5,8,20,.55)'; rr(x0, y0, cw, ch, 18); ctx.fill(); text('🔒', cx, cy - 14, 26, '#fff'); }
+    if (!owned) { ctx.fillStyle = 'rgba(5,8,20,.55)'; rr(x0, y0, cw, ch, 18); ctx.fill(); drawLock(cx, cy - 14, 11, '#fff'); }
     const ly = y0 + ch - 18;
     if (sel) text('נבחרה', cx, ly, 17, '#7CFC00', OUT);
     else if (owned) text(c.name, cx, ly, 17, '#fff', OUT);
@@ -1186,7 +1721,7 @@ function drawOver() {
   text(String(coinsRun), -6, 41, 24, '#ffe066', null, 'left');
   ctx.restore(); ctx.globalAlpha = 1;
   if (overT > 0.7) {
-    button(cx, cy + 92, 224, 56, 'שחק שוב', '#2dbd5a', '#17803a', startRun, 26);
+    button(cx, cy + 92, 224, 56, 'שחק שוב', '#2dbd5a', '#17803a', startFreeRun, 26);
     button(cx, cy + 156, 224, 46, 'תפריט', '#6c757d', '#41474d', () => { state = 'menu'; demoDist = dist; }, 22);
   }
 }
@@ -1202,18 +1737,25 @@ function drawConfetti() {
 function render() {
   ctx.fillStyle = '#0d150d'; ctx.fillRect(0, 0, W, H);
   if (state === 'menu') return drawMenu();
+  if (state === 'map') return drawMap();
+  if (state === 'stageCard') return drawStageCard();
   if (state === 'garage') return drawGarage();
   ctx.save();
   if (shake > 0) ctx.translate((Math.random() - 0.5) * shake * 22, (Math.random() - 0.5) * shake * 22);
   drawWorld(dist, true);
   ctx.restore();
   if (state === 'over') { drawOver(); drawConfetti(); return; }
+  if (state === 'stageOver') { drawStageOver(); drawConfetti(); return; }
   drawHud();
   drawCountdown();
   if (state === 'paused') {
     ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(0, 0, W, H);
-    text('הפסקה', W / 2, H * 0.42, 54, '#fff', OUT);
-    text('לוחצים כדי להמשיך', W / 2, H * 0.42 + 56, 22, '#ffd60a', OUT);
+    text('הפסקה', W / 2, H * 0.4, 54, '#fff', OUT);
+    text('לוחצים כדי להמשיך', W / 2, H * 0.4 + 54, 21, '#ffd60a', OUT);
+    button(W / 2, H * 0.4 + 122, 180, 48, activeStage ? 'חזרה למפה' : 'תפריט', '#6c757d', '#41474d', () => {
+      engineSet(false, 0);
+      state = activeStage ? 'map' : 'menu';
+    }, 20);
   }
 }
 
@@ -1227,7 +1769,13 @@ cv.addEventListener('pointerdown', e => {
   e.preventDefault();
   audioInit();
   const p = toLogical(e);
-  if (state === 'paused') { state = 'play'; countdown = 1.2; lastTick = 2; return; }
+  if (state === 'paused') {
+    for (let i = ui.length - 1; i >= 0; i--) {
+      const b = ui[i];
+      if (p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h) { b.fn(); return; }
+    }
+    state = 'play'; countdown = 1.2; lastTick = 2; return;
+  }
   if (state === 'play') { dragId = e.pointerId; lastX = p.x; try { cv.setPointerCapture(e.pointerId); } catch (err) {} }
   else pressedAt = p;
 });
@@ -1252,8 +1800,16 @@ cv.addEventListener('contextmenu', e => e.preventDefault());
 window.addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
   else if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
-  else if ((e.key === ' ' || e.key === 'Enter') && (state === 'menu' || (state === 'over' && overT > 0.7))) startRun();
-  else if (e.key === 'Escape' && state === 'play') state = 'paused';
+  else if (e.key === ' ' || e.key === 'Enter') {
+    if (state === 'menu') state = 'map';
+    else if (state === 'over' && overT > 0.7) startFreeRun();
+    else if (state === 'stageCard') startStage(selectedStage);
+    else if (state === 'stageOver' && overT > 0.55) startStage(selectedStage);
+  } else if (e.key === 'Escape') {
+    if (state === 'play') state = 'paused';
+    else if (state === 'stageCard') state = 'map';
+    else if (state === 'map' || state === 'garage') state = 'menu';
+  }
   audioInit();
 });
 window.addEventListener('keyup', e => {
@@ -1277,11 +1833,35 @@ function frame(ts) {
 }
 requestAnimationFrame(frame);
 
-// small hook so the screens can be checked without playing (used by the screenshot test)
+// test hooks for headless verification
 window.__g = {
-  set(s) { state = s; if (s === 'over') { dist = 4200; coinsRun = 7; score = 118; newBest = true; overT = 1; } },
+  set(s) {
+    state = s;
+    if (s === 'over') { activeStage = null; dist = 4200; coinsRun = 7; score = 118; newBest = true; overT = 1; }
+    else if (s === 'stageCard') { activeStage = STAGES[selectedStage || 0]; }
+    else if (s === 'stageOver') {
+      activeStage = STAGES[selectedStage || 0]; overT = 1;
+      if (!goalResults.length) { stageFailed = false; goalResults = [true, true, false]; earnedStars = 2; starBonus = 40; }
+    }
+    else if (s === 'menu' || s === 'garage') { activeStage = null; }
+  },
   warp(m) { dist = m * 50; demoDist = dist; nextRow = dist + 400; nextCoin = dist + 500; nextBolt = dist + 600; traffic = []; coins = []; bolts = []; lastBiome = biomeAt(dist); nextMilestone = Math.ceil(m / 250) * 250 + 250; },
+  stage(w, s) {
+    const wi = clamp(w | 0, 0, 3), si = clamp(s | 0, 0, 4);
+    startStage(wi * 5 + si);
+  },
+  finish() {
+    if (!activeStage) return false;
+    countdown = 0;
+    dist = activeStage.length * 50 + 2;
+    finishStage();
+    return true;
+  },
+  unlockAll() { unlockedAll = true; },
+  get save() { return save; },
   get state() { return state; },
+  get stages() { return STAGES; },
+  get speedKmh() { return Math.round(speed * SPEED_FACTOR); },
 };
 })();
 </script>
